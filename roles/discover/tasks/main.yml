@@ -65,7 +65,7 @@
   tags: running_config
   ignore_errors: "{{ ignore_task_errors }}"
   #register: running_config
-  no_log: true
+  #no_log: true
   when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "hp_comware") or (platform == "paloalto_panos")
 
 
