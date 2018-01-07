@@ -1,6 +1,6 @@
 ---
 
-ansible_dir: "/Users/psiri/Documents/ansible/"
+ansible_dir: "./"
 # BACKUP DIRECTORY MUST EXIST WITHIN ANSIBLE DIRECTORY!   {{ ansbile_dir }}backup
 backup_dir: "{{ ansible_dir }}backup/"
 dated_backup_dir: "{{ backup_dir }}{{ ansible_date_time.get('date') }}_{{ ansible_date_time.get('hour') }}-{{ ansible_date_time.get('minute') }}/"
