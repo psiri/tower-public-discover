@@ -1,0 +1,16 @@
+Value Filldown INTERFACE (\S+)
+Value GW ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})
+Value DNS1 ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})
+Value DNS2 ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})
+Value DNS_SUFFIX (\S+)
+Value INHERIT_SOURCE (\S+)
+
+Start
+  #Match DHCP Servers with DNS1, DNS2, DNS Suffix, and Inherit Source
+  ^${INTERFACE}\s+${GW}\s+${DNS1}\s+${DNS2}\s+${DNS_SUFFIX}\s+${INHERIT_SOURCE} -> Record
+  #Match DHCP Servers with DNS1, DNS2, DNS Suffix
+  ^${INTERFACE}\s+${GW}\s+${DNS1}\s+${DNS2}\s+${DNS_SUFFIX} -> Record
+  #Match DHCP Servers with DNS1, DNS2
+  ^${INTERFACE}\s+${GW}\s+${DNS1}\s+${DNS2} -> Record
+  #Match DHCP Servers with DNS1
+  ^${INTERFACE}\s+${GW}\s+${DNS1} -> Record

@@ -1,0 +1,22 @@
+Value MODEL (\S+)
+Value HW_VERSION (\S+)
+Value SERIAL_NUMBER (\S+)
+Value SYS_MAC (\S+)
+Value OS_VERSION (\S+)
+Value INTERNAL_BUILD_VERSION (\S+)
+Value INTERNAL_BUILD_ID (\S+)
+Value UPTIME (.*)
+Value TOTAL_MEMORY (\d+)
+Value FREE_MEMORY (\d+)
+
+Start
+  ^Arista\s+${MODEL}
+  ^Hardware\s+version:\s+${HW_VERSION}
+  ^Serial\s+number:\s+${SERIAL_NUMBER}
+  ^System\s+MAC\s+address:\s+${SYS_MAC}
+  ^Software\s+image\s+version:\s+${OS_VERSION}
+  ^Internal\s+build\s+version:\s+${INTERNAL_BUILD_VERSION}
+  ^Internal\s+build\s+ID:\s+${INTERNAL_BUILD_ID}
+  ^Uptime:\s+${UPTIME}
+  ^Total\s+memory:\s+${TOTAL_MEMORY}
+  ^Free\s+memory:\s+${FREE_MEMORY} -> Record

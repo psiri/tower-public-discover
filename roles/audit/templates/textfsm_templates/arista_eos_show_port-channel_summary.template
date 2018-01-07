@@ -1,0 +1,9 @@
+Value PORT_CHANNEL (\S+)
+Value PORT_CHANNEL_FLAGS (\w+)
+Value PROTOCOL (\w+)
+Value PROTOCOL_FLAGS (\w+)
+Value INTERFACE (.*)
+
+
+Start
+  ^\s+${PORT_CHANNEL}\(${PORT_CHANNEL_FLAGS}\)\s+${PROTOCOL}\(${PROTOCOL_FLAGS}\)\s+${INTERFACE} -> Record

@@ -1,0 +1,121 @@
+DEVICE: {{ inventory_hostname }}
+================================
+
+
+| VENDOR | MODEL | SERIAL NUMBER | SOFTWARE IMAGE | MAC ADDRESS | HARDWARE VERSION |INTERNAL BUILD VERS | BUILD ID | UPTIME | TOTAL MEM | FREE MEM |
+| :----: | :---: | :-----------: | :------------: | :---------: | :--------------: | :----------------: | :------: | :----: | :-------: | :------: |
+| Arista | {{ device_info.response[0]['model'] }} | {{ device_info.response[0]['serial_number'] }} | {{ device_info.response[0]['os_version'] }} | {{ device_info.response[0]['sys_mac'] }} | {{ device_info.response[0]['hw_version'] }} | {{ device_info.response[0]['internal_build_version'] }} | {{ device_info.response[0]['internal_build_id'] }} | {{ device_info.response[0]['uptime'] }} | {{ device_info.response[0]['total_memory'] }} |  {{ device_info.response[0]['free_memory'] }} |
+
+
+
+| INTERFACE | TYPE | DESCRIPTION | IP ADDR/MASK | MAC ADDR | STATUS | PROTOCOL |   BW  |  MTU  | DUPLEX | SPEED | AUTO NEGOTIATION |
+| :-------- | :--- | :---------- | :----------: | :------: | :----: | :------: | :---: | :---: | :----: | :---: | :--------------: |
+{% for interface in interface_info.response %}
+| {{ interface.get('interface') }} {% if interface.membership is defined %}{{ interface.get('membership') }}{% endif %} | {{ interface.get('hardware_type') }} | {{ interface.get('description') }} | {{ interface.get('ip_address') }} | {{ interface.get('address') }} | {{ interface.get('link_status') }} | {{ interface.get('protocol_status') }} | {{ interface.get('bandwidth') }} | {{ interface.get('mtu') }} | {{ interface.get('duplex') }} | {{ interface.get('speed') }} | {{ interface.get('negotiation') }} |
+{% endfor %}
+
+
+
+{% if port_channel_info.response[0] is defined %}
+| PORT-CHANNEL | FLAGS |  PROTOCOL | PROTOCOL FLAGS | PORTS |
+| :----------- | :---: | :-------: | :------------: | :---- |
+{% for response in port_channel_info.response %}
+| {{ response.get('port_channel') }} |  {{ response.get('port_channel_flags') }} | {{ response.get('protocol') }} | {{ response.get('protocol_flags') }} | {{ response.get('interface') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{{ inventory_hostname }} VLAN(s):
+---------------------------------
+| VLAN ID | NAME | STATUS |
+| :------ | :--- | :----: |
+{% for vlan in vlan_info.response %}
+| {{ vlan.get('vlan_id') }} | {{ vlan.get('name') }} | {{ vlan.get('status') }} |
+{% endfor %}
+
+
+
+
+
+{% if lldp_neighbors.response[0] is defined %}
+LLDP NEIGHBORS:
+---------------
+| LOCAL PORT | DEVICE ID | REMOTE PORT |
+| :--------- | :-------- | :---------- |
+{% for lldp_neighbor in lldp_neighbors.response %}
+| {{ lldp_neighbor.get('local_interface') }} | {{ lldp_neighbor.get('neighbor') }} | {{ lldp_neighbor.get('neighbor_interface') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if inventory_info.response[0] is defined %}
+{{ inventory_hostname }} INVENTORY:
+-----------------------------------------
+
+POWER SUPPLIES:
+---------------
+| POWER SUPPLY SLOT | MODEL | SERIAL |
+| :---------------- | :---: | :----: |
+{% for part in inventory_info.response if part.get('pwr_supply_slot') %}
+| {{ part.get('pwr_supply_slot') }} | {{ part.get('pwr_supply_model') }} | {{ part.get('pwr_supply_serial') }} |
+{% endfor %}
+
+FANS:
+-----
+| FAN MODULE | FAN QUANTITY | MODEL | SERIAL |
+| :--------- | :----------: | :---: | :----: |
+{% for fan in inventory_info.response if fan.get('fan_module') %}
+| {{ fan.get('fan_module') }} | {{ fan.get('fan_qty') }} | {{ fan.get('fan_model') }} | {{ fan.get('fan_serial') }} |
+{% endfor %}
+
+TRANSCEIVERS:
+-------------
+| PHYSICAL PORT | MANUFACTURER | MODEL | SERIAL |  REV  |
+| :------------ | :----------: | :---: | :----: | :---: |
+{% for transceiver in inventory_info.response if transceiver.get('transceiver_manufacturer') %}
+| {{ transceiver.get('transceiver_port') }} | {{ transceiver.get('transceiver_manufacturer') }} | {{ transceiver.get('transceiver_model') }} | {{ transceiver.get('transceiver_serial') }} | {{ transceiver.get('transceiver_rev') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+{% if routing_info.response[0] is defined %}
+{{ inventory_hostname }} ROUTES:
+-----------------------------------
+| PROTOCOL | NETWORK | MASK | DISTANCE | METRIC | DIRECT | NEXT HOP | INTERFACE |
+| :------: | :------ | :--- | :------- | :----- | :----- | :------- | :-------- |
+{% for route in routing_info.response %}
+| {{ route.get('protocol') }} | {{ route.get('network') }} | {{ route.get('mask') }} | {{ route.get('distance') }} | {{ route.get('metric') }} | {{ route.get('direct') }} | {{ route.get('next_hop') }} | {{ route.get('interface') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if ospf_info.response[0] is defined %}
+{{ inventory_hostname }} OSPF NEIGHBORS:
+----------------------------------------
+| NEIGHBOR_ID |  ADDRESS | INTERFACE |  VRF  | STATE | PRIORITY | DEAD_TIME |
+| :---------- | :------- | :-------- | :---: | :---: | :------- | :-------: |
+{% for response in ospf_info.response %}
+| {{ response.get('neighbor_id') }} | {{ response.get('address') }} | {{ response.get('interface') }} | {{ response.get('vrf') }} | {{ response.get('state') }} | {{ response.get('priority') }} | {{ response.get('dead_time') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if dir_info.response is defined %}
+{{ inventory_hostname }} Dir:
+-----------------------------
+| FILE SYSTEM |  NAME | PERMISSIONS | MODIFIED | SIZE (B) |
+| :---------- | :---- | :---------- | :------: | :------- |
+{% for response in dir_info.response %}
+| {{ response.get('file_system') }} | {{ response.get('name') }} | {{ response.get('permissions') }} | {{ response.get('date_time') }} | {{ response.get('size') }} |
+{% endfor %}
+{% endif %}

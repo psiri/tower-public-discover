@@ -1,0 +1,133 @@
+DEVICE: {{ inventory_hostname }}
+================================
+
+{% if platform == 'cisco_ios_ssh' %}
+| VENDOR | OS VERSION | MODEL | SERIAL | BASE MAC | IMAGE FILE | UPTIME | LICENSE |
+| :----: | :--------: | :---: | :----: | :------: | :--------: | :----: | :-----: |
+| Cisco  | {{ device_info.response[0]['version'] }} | {% for device in device_info.response[0]['hardware'] %} {{ device }} {% endfor %} | {% for sn in device_info.response[0]['serial'] %} {{ sn }} {% endfor %} | {% for mac in device_info.response[0]['base_mac'] %} {{ mac }} {% endfor %} | {{ device_info.response[0]['running_image'] }} | {% for time in device_info.response[0]['uptime'] %}{{ time }}{% endfor %} | {% for license in device_info.response[0]['license_level'] %} {{ license }} {% endfor %} |
+{% endif %}
+
+
+{% if platform == 'cisco_nxos' %}
+| HOSTNAME | VENDOR |  BIOS | MODEL |    SYSTEM IMAGE    |   KICKSTART IMGAGE   | UPTIME |
+| :------: | :----: | :---: | :---: | :----------------: | :------------------: | :----: |
+| {{ device_info.response[0]['device_hostname'] }} | Cisco | {{ device_info.response[0]['bios'] }} | {{ device_info.response[0]['hardware'] }} | {{ device_info.response[0]['os_version'] }} {{ device_info.response[0]['boot_image'] }} | {{ device_info.response[0]['kickstart'] }} {{ device_info.response[0]['kickstart_image'] }} | {{ device_info.response[0]['uptime'] }} |
+{% endif %}
+
+
+{% if platform == 'arista_eos' %}
+| VENDOR | MODEL | SERIAL NUMBER |    SOFTWARE IMAGE    | INTERNAL BUILD VERSION / ID | UPTIME |
+| :----: | :---: | :-----------: | :------------------: | :-------------------------: | :----: |
+| Arista | {{ device_info.response[0]['model'] }} | {{ device_info.response[0]['serial_number'] }} | {{ device_info.response[0]['os_version'] }} | {{ device_info.response[0]['internal_build_version'] }} {{ device_info.response[0]['internal_build_id'] }} | {{ device_info.response[0]['uptime'] }} |
+{% endif %}
+
+
+
+{% if (platform == 'cisco_ios_ssh') or (platform == 'arista_eos') %}
+| INTERFACE | DESCRIPTION | IP ADDR/MASK | MAC ADDR | STATUS | PROTOCOL |   BW  |  MTU  | DUPLEX | SPEED | MEDIA TYPE |
+| :-------- | :---------- | :----------: | :------: | :----: | :------: | :---: | :---: | :----: | :---: | :--------: |
+{% for interface in interface_info.response %}
+| {{ interface.get('interface') }} {% if interface.membership is defined %}{{ interface.get('membership') }}{% endif %} | {{ interface.get('description') }} | {{ interface.get('ip_address') }} | {{ interface.get('address') }} | {{ interface.get('link_status') }} | {{ interface.get('protocol_status') }} | {{ interface.get('bandwidth') }} | {{ interface.get('mtu') }} | {{ interface.get('duplex') }} | {{ interface.get('speed') }} | {{ interface.get('media_type') }} |
+{% endfor %}
+{% endif %}
+
+
+{% if platform == 'cisco_nxos' %}
+| INTERFACE |  MODE | DESCRIPTION | IP ADDR/MASK | MAC ADDR | STATUS | MEMBER OF |   BW  |  MTU  | DUPLEX | SPEED | MEDIA TYPE |
+| :-------- | :---: | :---------- | :----------: | :------: | :----: | :-------: | :---: | :---: | :----: | :---: | :--------: |
+{% for interface in interface_info.response %}
+| {{ interface.get('interface') }} | {{ interface.get('port_mode') }} | {{ interface.get('description') }} | {{ interface.get('ip_address') }} | {{ interface.get('address') }} | {{ interface.get('link_status') }} | {{ interface.get('membership') }} | {{ interface.get('bandwidth') }} | {{ interface.get('mtu') }} | {{ interface.get('duplex') }} | {{ interface.get('speed') }} | {{ interface.get('media_type') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if platform == 'cisco_ios_ssh' %}
+{% if etherchannel_info.response[0] is defined %}
+| PORT-CHANNEL | FLAGS | PROTOCOL | PORTS |
+| :----------- | :---: | :------: | :---- |
+{% for response in etherchannel_info.response %}
+| {{ response.get('port_channel') }} |  {{ response.get('port_channel_flags') }} | {{ response.get('protocol') }} | {{ response.get('ports') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+
+
+{% if (platform == 'cisco_ios_ssh') or (platform == 'cisco_nxos') or (platform == 'arista_eos') %}
+| VLAN ID | NAME | STATUS |
+| :------ | :--- | :----: |
+{% for vlan in vlan_info.response %}
+| {{ vlan.get('vlan_id') }} | {{ vlan.get('name') }} | {{ vlan.get('status') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if (platform == 'cisco_nxos') or (platform == 'cisco_ios_ssh') %}
+{% if cdp_neighbors.response[0] is defined %}
+CDP NEIGHBORS:
+--------------
+| LOCAL PORT | REMOTE HOST | REMOTE PORT |
+| :--------- | :---------- | :---------- |
+{% for neighbor in cdp_neighbors.response %}
+| {{ neighbor.get('local_interface') }} | {{ neighbor.get('neighbor') }} | {{ neighbor.get('neighbor_interface') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+
+{% if (platform == 'cisco_ios_ssh') or (platform == 'cisco_nxos') or (platform == 'arista_eos') %}
+{% if lldp_neighbors.response[0] is defined %}
+LLDP NEIGHBORS:
+---------------
+| LOCAL PORT | DEVICE ID | REMOTE PORT |
+| :--------- | :-------- | :---------- |
+{% for lldp_neighbor in lldp_neighbors.response %}
+| {{ lldp_neighbor.get('local_interface') }} | {{ lldp_neighbor.get('neighbor') }} | {{ lldp_neighbor.get('neighbor_interface') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+
+{% if (platform == 'cisco_nxos') or (platform == 'cisco_ios_ssh') %}
+{% if inventory_info.response[0] is defined %}
+{{ inventory_hostname }} INVENTORY:
+-----------------------------------
+| NAME | DESCRIPTION | PID |  VID  |   SN  |
+| :--- | :---------- | --- | :---: | :---- |
+{% for part in inventory_info.response %}
+| {{ part.get('name') }} | {{ part.get('descr') }} | {{ part.get('pid') }} | {{ part.get('vid') }} | {{ part.get('sn') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+{% if (platform == 'cisco_nxos') or (platform == 'cisco_ios_ssh') %}
+{% if routing_info.response[0] is defined %}
+{{ inventory_hostname }} ROUTES:
+-----------------------------------
+| PROTOCOL | TYPE | NETWORK | MASK | DISTANCE | METRIC | NEXT HOP IP | NEXT HOP INT |
+| -------: | :--- | :------ | :--- | :------- | :----- | :---------- | :----------- |
+{% for route in routing_info.response %}
+| {{ route.get('protocol') }} | {{ route.get('type') }} | {{ route.get('network') }} | {{ route.get('mask') }} | {{ route.get('distance') }} | {{ route.get('metric') }} | {{ route.get('nexthopip') }} | {{ route.get('nexthopif') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+
+{% if (platform == 'arista_eos') %}
+{% if routing_info.response[0] is defined %}
+{{ inventory_hostname }} ROUTES:
+-----------------------------------
+| PROTOCOL | NETWORK | MASK | DISTANCE | METRIC | DIRECT | NEXT HOP | INTERFACE |
+| :------: | :------ | :--- | :------- | :----- | :----- | :------- | :-------- |
+{% for route in routing_info.response %}
+| {{ route.get('protocol') }} | {{ route.get('network') }} | {{ route.get('mask') }} | {{ route.get('distance') }} | {{ route.get('metric') }} | {{ route.get('direct') }} | {{ route.get('next_hop') }} | {{ route.get('interface') }} |
+{% endfor %}
+{% endif %}
+{% endif %}

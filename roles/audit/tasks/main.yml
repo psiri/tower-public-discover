@@ -1,0 +1,134 @@
+---
+
+- name: SETUP
+  setup:
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  when: (ansible_date_time is not defined)
+
+
+- name: ENSURE DATED BACKUP DIRECTORY EXISTS
+  file:
+    path: "{{ backup_dir }}{{ ansible_date_time.get('date') }}_{{ ansible_date_time.get('hour') }}-{{ ansible_date_time.get('minute') }}"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: ENSURE HOST-SPECIFIC DIRECTORY EXISTS
+  file:
+    path: "{{ dated_backup_dir }}{{ inventory_hostname }}"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: ENSURE REPORT DIRECTORY EXISTS
+  file:
+    path: "{{ host_backup_dir }}reports"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: ENSURE RAW OUTPUT DIRECTORY EXISTS
+  file:
+    path: "{{ host_backup_dir }}raw_output"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: ENSURE AUDIT DIRECTORY EXISTS
+  file:
+    path: "{{ host_backup_dir }}audit"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: PERFORM PALO ALTO NETWORKS FW AUDITING
+  siris_show:
+    connection: "{{ connection }}"
+    platform: "{{ platform }}"
+    use_templates: False
+    template_dir: "{{ template_dir }}"
+    commands_file: "{{ roles_dir }}audit/files/panos_audit_commands.txt"
+    host: "{{ host }}"
+    username: "{{ un }}"
+    password: "{{ pwd }}"
+    secret: "{{ secret }}"
+    port: "{{ port_num }}"
+    delay: 2
+    global_delay_factor: "{{ global_delay_factor }}"
+    local_file: "{{ audit_dir }}{{ inventory_hostname }}_audit.txt"
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: panos_audit
+  when: (platform == "paloalto_panos")
+
+
+- name: PERFORM CISCO IOS AUDITS
+  siris_show:
+    connection: "{{ connection }}"
+    platform: "{{ platform }}"
+    use_templates: False
+    template_dir: "{{ template_dir }}"
+    commands_file: "{{ roles_dir }}audit/files/cisco_ios_audit.txt"
+    host: "{{ host }}"
+    username: "{{ un }}"
+    password: "{{ pwd }}"
+    secret: "{{ secret }}"
+    port: "{{ port_num }}"
+    delay: 2
+    global_delay_factor: "{{ global_delay_factor }}"
+    local_file: "{{ audit_dir }}{{ inventory_hostname }}_audit.txt"
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: cisco_ios_audit
+  when: (platform == "cisco_ios") or (platform == "cisco_ios_ssh") and (execute_cisco_audit=="True")
+
+
+- name: SCORE PANOS AUDIT RESULTS
+  siris_show:
+    connection: "offline"
+    platform: "{{ platform }}"
+    use_templates: True
+    template_dir: "{{ template_dir }}"
+    command: 'audit'
+    file: "{{ audit_dir }}{{ inventory_hostname }}_audit.txt"
+    host: "{{ host }}"
+    username: "{{ un }}"
+    password: "{{ pwd }}"
+    secret: "{{ secret }}"
+    port: "{{ port_num }}"
+    delay: 1
+    global_delay_factor: "{{ global_delay_factor }}"
+    #local_file: "{{ dated_backup_dir }}audit/{{ inventory_hostname }}/{{ inventory_hostname }}_audit_score.txt"
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: panos_audit_score
+  when: (platform == "paloalto_panos")
+
+
+#- name: Display all variables/facts known for a host
+#  debug:
+#    var: panos_audit_score
+
+
+- name: BUILD PALO ALTO AUDIT REPORTS
+  template: 
+    src: templates/panos_audit.j2  
+    dest: "{{ audit_dir }}{{ inventory_hostname }}_audit_score..md"
+  when: (platform == "paloalto_panos")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False

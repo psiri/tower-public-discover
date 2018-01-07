@@ -1,0 +1,25 @@
+Value Filldown NEIGHBOR (\S+)
+Value NEIGHBOR_IP (\S+)
+Value PLATFORM (.*)
+Value Required LOCAL_PORT (\S+)
+Value REMOTE_PORT (\S+)
+Value SOFTWARE_VERSION (.*)
+Value ADVERTISEMENT (\d)
+
+Start
+  ^Device\s+ID:(\s)?${NEIGHBOR}
+  ^[Ee]ntry\s+[Aa]ddress\(es\): -> ENTRY
+  ^Platform:\s+${PLATFORM},
+  ^[Ii]nterface:\s+${LOCAL_PORT},\s+Port\sID\s+\(outgoing port\):\s+${REMOTE_PORT}
+  ^[Vv]ersion\s+:(\s+)? -> SOFTWARE
+  ^[Aa]dvertisement\s+[Vv]ersion:\s+${ADVERTISEMENT} -> Record Start
+
+
+ENTRY
+  ^[Mm]anagement\s+[Aa]ddress\(es\): -> Start
+  ^\s+IP(v4)?\s+[Aa]ddress:\s+${NEIGHBOR_IP} -> Start
+  ^Platform: -> Start
+
+
+SOFTWARE
+  ^${SOFTWARE_VERSION}.* -> Start

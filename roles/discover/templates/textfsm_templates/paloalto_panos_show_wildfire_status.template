@@ -1,0 +1,86 @@
+Value Key CONNECTION_SIG (\w+)
+Value CONNECTION_SERVER_SELECTION (\w+)
+Value CONNECTION_FILE_CACHE (\w+)
+Value PUBLIC_SERVER (\S+)
+Value PUBLIC_STATUS (.*)
+Value PUBLIC_BEST (\S+)
+Value PUBLIC_REGISTERED (\w+)
+Value PUBLIC_PROXY (\w+)
+Value PUBLIC_LICENSE (\w+)
+Value PUBLIC_SERVICE_IP (\S+)
+Value PUBLIC_UPDATE_INTERVAL (.*)
+Value PRIVATE_SERVER (\S+)
+Value PRIVATE_STATUS (.*)
+Value PRIVATE_BEST (\S+)
+Value PRIVATE_REGISTERED (\w+)
+Value PRIVATE_PROXY (\w+)
+Value PRIVATE_LICENSE (\w+)
+Value PRIVATE_SERVICE_IP (\S+)
+Value SIZE_PE (\d+\s+\w+)
+Value SIZE_APK (\d+\s+\w+)
+Value SIZE_PDF (\d+\s+\w+)
+Value SIZE_MS_OFFICE (\d+\s+\w+)
+Value SIZE_JAR (\d+\s+\w+)
+Value SIZE_FLASH (\d+\s+\w+)
+Value SIZE_MACOSX (\d+\s+\w+)
+Value PUBLIC_FWDED (\d+)
+Value PUBLIC_FAILED (\d+)
+Value PUBLIC_TOTAL (\d+)
+Value PUBLIC_TOTAL_FAILED (\d+)
+Value PRIVATE_FWDED (\d+)
+Value PRIVATE_FAILED (\d+)
+Value PRIVATE_TOTAL (\d+)
+Value Key PRIVATE_TOTAL_FAILED (\d+)
+
+
+Start
+  ^\s+Signature\s[Vv]erification:\s+${CONNECTION_SIG}
+  ^\s+Server\s[Ss]election:\s+${CONNECTION_SERVER_SELECTION}
+  ^\s+File\s[Cc]ache:\s+${CONNECTION_FILE_CACHE}
+  ^WildFire\s[Pp]ublic\s[Cc]loud: -> PublicCloud
+
+
+
+PublicCloud
+  ^\s+Server\s+address:\s+${PUBLIC_SERVER}
+  ^\s+Status:\s+${PUBLIC_STATUS}
+  ^\s+Best\sserver:\s+${PUBLIC_BEST}
+  ^\s+Device\sregistered:\s+${PUBLIC_REGISTERED}
+  ^\s+Through\sa\sproxy:\s+${PUBLIC_PROXY}
+  ^\s+Valid\swildfire\slicense:\s+${PUBLIC_LICENSE}
+  ^\s+Service\sroute\sIP\saddress:\s+${PUBLIC_SERVICE_IP}
+  ^\s+Best\sserver\supdate\sinterval:\s+${PUBLIC_UPDATE_INTERVAL}(\.)?
+  ^WildFire\sPrivate\sCloud: -> PrivateCloud
+
+PrivateCloud
+  ^\s+Server\s+address:\s+${PRIVATE_SERVER}
+  ^\s+Status:\s+${PRIVATE_STATUS}
+  ^\s+Best\sserver:\s+${PRIVATE_BEST}
+  ^\s+Device\sregistered:\s+${PRIVATE_REGISTERED}
+  ^\s+Through\sa\sproxy:\s+${PRIVATE_PROXY}
+  ^\s+Valid\swildfire\slicense:\s+${PRIVATE_LICENSE}
+  ^\s+Service\sroute\sIP\saddress:\s+${PRIVATE_SERVICE_IP}
+  ^File\ssize\slimit\sinfo: -> FileSize
+
+FileSize
+  ^\s+pe\s+${SIZE_PE}
+  ^\s+apk\s+${SIZE_APK}
+  ^\s+pdf\s+${SIZE_PDF}
+  ^\s+ms-office\s+${SIZE_MS_OFFICE}
+  ^\s+jar\s+${SIZE_JAR}
+  ^\s+flash\s+${SIZE_FLASH}
+  ^\s+MacOSX\s+${SIZE_MACOSX}
+  ^Forwarding\sinfo: -> ForwardingPublic
+
+ForwardingPublic
+  ^\s+total\sfile\sfwded\s+:\s+${PUBLIC_FWDED}
+  ^\s+total\sfile\sfailed:\s+${PUBLIC_FAILED}
+  ^\s+total\scloud\squeries:\s+${PUBLIC_TOTAL}
+  ^\s+total\scloud\squeries\sfailed:\s+${PUBLIC_TOTAL_FAILED}
+  ^\s+Private\sCloud: -> ForwardingPrivate
+
+ForwardingPrivate
+  ^\s+total\sfile\sfwded\s+:\s+${PRIVATE_FWDED}
+  ^\s+total\sfile\sfailed:\s+${PRIVATE_FAILED}
+  ^\s+total\scloud\squeries:\s+${PRIVATE_TOTAL}
+  ^\s+total\scloud\squeries\sfailed:\s+${PRIVATE_TOTAL_FAILED} -> Record

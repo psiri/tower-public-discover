@@ -1,0 +1,955 @@
+---
+
+
+- name: SETUP
+  setup:
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+
+
+- name: CREATE DATED BACKUP DIRECTORY
+  file:
+    path: "{{ backup_dir }}{{ ansible_date_time.get('date') }}_{{ ansible_date_time.get('hour') }}-{{ ansible_date_time.get('minute') }}"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: CREATE HOST-SPECIFIC DIRECTORY
+  file:
+    path: "{{ dated_backup_dir }}{{ inventory_hostname }}"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: CREATE REPORT DIRECTORY
+  file:
+    path: "{{ host_backup_dir }}reports"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: CREATE RAW OUTPUT DIRECTORY
+  file:
+    path: "{{ host_backup_dir }}raw_output"
+    state: directory
+  run_once: true
+  delegate_to: localhost
+  #delegate_facts: True
+  changed_when: False
+
+
+- name: BACKUP RUNNING-CONFIG - IOS, NXOS, EOS
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_running_config_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ host_backup_dir }}{{ inventory_hostname }}.txt
+  tags: running_config
+  ignore_errors: "{{ ignore_task_errors }}"
+  #register: running_config
+  no_log: true
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: BACKUP STARTUP-CONFIG (DIFF FOR UNSAVED CHANGES)
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_startup_config_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_startup_config.txt
+  tags: startup_config
+  ignore_errors: "{{ ignore_task_errors }}"
+  #register: startup_config
+  no_log: true
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+# ALTERNATIVE METHOD USING ANSIBLE MODULES:
+#- name: BACKUP CONFIGS CISCO-IOS
+#  ios_config:
+#    host={{ host }}
+#    username={{ un }}
+#    password={{ pwd }}
+#    backup=yes
+#    save=no
+#  tags: backup
+#  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")
+#  ignore_errors: True
+  # Used to ignore latest bug in ansible module
+
+
+#- name: BACKUP CONFIGS CISCO-NEXUS
+#  nxos_config:
+#    host={{ host }}
+#    username={{ un }}
+#    password={{ pwd }}
+#    transport=cli
+#    backup=yes
+#    save=no
+#  tags: backup
+#  when: (platform == "cisco_nxos") or (platform == "cisco_nxos_nxapi")
+#  ignore_errors: True
+  # Used to ignore latest bug in ansible module
+
+
+#- name: BACKUP CONFIGS ARISTA-EOS
+#  eos_config:
+#    host={{ host }}
+#    username={{ un }}
+#    password={{ pwd }}
+#    transport=cli
+#    port=22
+#    save=no
+#    backup=yes
+#    defaults=false
+#    authorize=yes
+#  tags: backup
+#  when: (platform == "arista_eos") or (platform == "arista_eos_eapi")
+
+
+- name: GATHER UNIVERSAL DEVICE INFORMATION
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_version_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_version.txt
+  tags: device_info
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: device_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER INTERFACE DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_interface_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_interface.txt
+  tags: interface cisco arista
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: interface_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER ETHERCHANNEL / PORT-CHANNEL DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command="{{ sh_port_channel_command }}"
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_port-channel_summary.txt
+  tags: port-channel cisco arista
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: port_channel_info
+  when: (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER VLAN DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_vlan_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_vlan.txt
+  tags: vlan cisco arista
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: vlan_info
+  when: (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER CDP NEIGHBOR DATA - (IOS & NXOS ONLY)
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_cdp_neighbor_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_cdp_neighbors_detail.txt
+  tags: cdp
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: cdp_neighbors
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos")
+
+
+- name: GATHER LLDP NEIGHBOR DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_lldp_neighbor_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_lldp_neighbors_detail.txt
+  tags: lldp
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: lldp_neighbors
+  when: (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER INVENTORY DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_inventory_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_iventory.txt
+  tags: inventory ios nxos cisco
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: inventory_info
+  when: (platform != "paloalto_panos")
+
+
+- name: GATHER SWITCH STACK DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_switch_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_switch_detail.txt
+  tags: stack
+  ignore_errors: "{{ ignore_task_errors }}"
+  #register: stack_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")  
+
+
+- name: GATHER ROUTING DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_ip_route_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_ip_route.txt
+  tags: routing ios nxos eos
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: routing_info
+  when: (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "hp_comware") or (platform == "paloalto_panos")
+
+
+- name: GATHER STANDBY (FHRP) DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_standby_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_standby.txt
+  tags: hsrp
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: standby_info
+  when: (platform != "paloalto_panos")
+
+
+- name: GATHER OSPF DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_ospf_neighbor_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_ip_ospf_neighbor.txt
+  tags: ospf
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: ospf_info
+  when: (platform != "paloalto_panos")
+
+
+- name: GATHER EIGRP DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_eigrp_neighbor_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_ip_eigrp_neighbor.txt
+  tags: eigrp
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: eigrp_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos")
+
+
+- name: GATHER BGP DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_bgp_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_ip_bgp.txt
+  tags: bgp
+  ignore_errors: "{{ ignore_task_errors }}"
+  #register: bgp_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos")
+
+
+- name: GATHER FLASH & DIRECTORY DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ dir_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_dir.txt
+  tags: dir
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: dir_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER ARP DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_ip_arp_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_arp.txt
+  tags: arp
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: arp_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER MAC ADDRESS DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_mac_address_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_mac_address-table.txt
+  tags: mac
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: mac_address_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER ACL / SECURITY POLICY DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_acl_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_access-lists.txt
+  tags: acl
+  ignore_errors: "{{ ignore_task_errors }}"
+  register: acl_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER TRANSCEIVER DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_transceiver_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_interface_transceiver.txt
+  tags: transceiver
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: transceiver_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER POE DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_poe_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_power_inline.txt
+  tags: poe
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: poe_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")
+
+
+- name: GATHER DHCP DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_dhcp_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_dhcp.txt
+  tags: dhcp
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: dhcp_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER ENVIRONMENTAL DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_env_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_env_all.txt
+  tags: env
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: env_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER LACP DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_lacp_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_lacp.txt
+  tags: lacp
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: lacp_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER CPU DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_processes_cpu_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_processes_cpu.txt
+  tags: cpu
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: cpu_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER DIAGNOSTIC DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_diagnostic_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_diagnostic.txt
+  tags: diagnostic
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: diagnostic_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "paloalto_panos")
+  # Does not run on Arista EOS - No inbuilt diagnostic commands (other than what is already being gathered)
+
+
+- name: GATHER LICENSE DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_license_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_license.txt
+  tags: license
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: license_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "paloalto_panos")
+
+
+- name: GATHER SPANNING-TREE DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_spanning_tree_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_spanning-tree_detail.txt
+  tags: spanning-tree
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: license_info
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos")
+
+
+- name: GATHER MLAG / VPC DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_vpc_mlag_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_vpc_mlag.txt
+  tags: mlag vpc
+  ignore_errors: "{{ ignore_task_errors }}"
+#  register: license_info
+  when: (platform == "cisco_nxos") or (platform == "arista_eos")
+
+
+- name: GATHER LOG DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_logging_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    delay={{ default_delay }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_logging.txt
+  tags: logging
+  ignore_errors: "{{ ignore_task_errors }}"
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "cisco_nxos") or (platform == "arista_eos")
+
+
+
+- name: GATHER PAN HARDWARE INTERFACE DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show interface hardware'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_interface_hardware.txt
+  tags: pan
+  register: pan_int_hardware
+  when: (platform == "paloalto_panos")
+
+
+
+- name: GATHER PAN HIGH-AVAILABILITY DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show high-availability all'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_high-availability_all.txt
+  tags: pan
+  register: pan_ha_info
+  when: (platform == "paloalto_panos")
+
+
+- name: GATHER PAN NAT DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show running nat-policy'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_running_nat-policy.txt
+  tags: pan
+  register: pan_nat
+  when: (platform == "paloalto_panos")
+
+
+- name: GATHER PAN TUNNEL FLOW DATA
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show running tunnel flow all'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_running_tunnel_flow_all.txt
+  tags: pan
+  register: pan_tunnel_flow
+  when: (platform == "paloalto_panos")
+
+
+- name: GATHER PAN USER-ID INFO
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command={{ sh_users_command }}
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_user-id.txt
+  tags: pan
+  #register: pan_uid
+  when: (platform == "paloalto_panos")
+
+
+- name: GATHER PAN WILDFIRE STATUS
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show wildfire status'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_wildfire_status.txt
+  tags: pan
+  register: pan_wildfire_status
+  when: (platform == "paloalto_panos")
+
+
+- name: GATHER PAN URL-FILTERING STATUS
+  siris_show:
+    connection={{ connection }}
+    platform={{ platform }}
+    template_dir={{ template_dir }}
+    command='show url-cloud status'
+    host={{ host }}
+    username={{ un }}
+    password={{ pwd }}
+    secret={{ secret }}
+    port={{ port_num }}
+    global_delay_factor={{ global_delay_factor }}
+    local_file={{ raw_output_dir }}{{ inventory_hostname }}_show_url-cloud_status.txt
+  tags: pan
+  register: pan_url_status
+  when: (platform == "paloalto_panos")
+
+#- name: DEBUG VARS ON TERMINAL
+#  debug: var=ansible_date_time
+#  tags: debug
+
+
+- name: CONVERT BACKUPS TO .TXT FILES
+  copy: 
+    src: "{{ item }}"
+    dest: "{{ dated_backup_dir }}{{ inventory_hostname }}.txt"
+    warn: no
+    command_warnings: False
+  with_fileglob:
+    - "{{ backup_dir }}{{ inventory_hostname }}_config.{{ ansible_date_time.get('date') }}@{{ ansible_date_time.get('hour') }}*"
+    # Only move the backups that were taken as a result of the same play
+  when: ("{{ backup_dir }}{{ inventory_hostname }}_config.{{ ansible_date_time.get('date') }}@*" is defined)
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: CLEAN UP CONFIGS (1/2)
+  lineinfile: 
+    dest: "{{ host_backup_dir }}{{ inventory_hostname }}.txt" 
+    line: "Building configuration..." 
+    state: absent
+  tags: cleanup
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: CLEAN UP CONFIGS (2/2)
+  lineinfile: 
+    dest: "{{ host_backup_dir }}{{ inventory_hostname }}.txt"
+    regexp: "Current configuration .*"
+    state: absent
+  tags: cleanup
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: PERFORM CONFIG DIFF (RUNNING-CONFIG <--> STARTUP-CONFIG)
+  shell: "{{ diff_command }}"
+  tags: diff
+  when: (platform == "cisco_nxos") or (platform == "arista_eos") or (platform == "cisco_ios_ssh") or (platform == "cisco_ios") or (platform == "hp_comware") or (platform == "paloalto_panos")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+  failed_when: False
+
+
+- name: BUILD  CISCO IOS DEVICE REPORTS
+  template: 
+    src: templates/ios_report.j2  
+    dest: "{{ reports_dir }}{{ inventory_hostname }}.md"
+  tags: reports ios lldp
+  when: (platform == "cisco_ios_ssh") or (platform == "cisco_ios")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: BUILD CISCO NEXUS DEVICE REPORTS
+  template: 
+    src: templates/nxos_report.j2  
+    dest: "{{ reports_dir }}{{ inventory_hostname }}.md"
+  tags: reports nxos cisco
+  when: (platform == "cisco_nxos")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: BUILD ARISTA EOS DEVICE REPORTS
+  template: 
+    src: templates/eos_report.j2  
+    dest: "{{ reports_dir }}{{ inventory_hostname }}.md"
+  tags: reports eos arista
+  when: (platform == "arista_eos")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: BUILD PALO ALTO NETWORKS DEVICE REPORTS
+  template: 
+    src: templates/pan_report.j2  
+    dest: "{{ reports_dir }}{{ inventory_hostname }}.md"
+  tags: pan reports
+  when: (platform == "paloalto_panos")
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+- name: CONVERT PALO ALTO NETWORKS CONFIGS BACK TO XML
+  copy: 
+    src: "{{ host_backup_dir }}{{ inventory_hostname }}.txt"
+    dest: "{{ host_backup_dir }}{{ inventory_hostname }}.xml"
+  with_fileglob:
+    - "{{ host_backup_dir }}{{ inventory_hostname }}.txt"
+    # Only convert Palo Alto Networks device configs
+  when: (platform == "paloalto_panos" )
+  delegate_to: localhost
+  delegate_facts: True
+  changed_when: False
+
+
+#- name: ASSEMBLE COMPREHENSIVE REPORT OF ENVIRONMENT
+#  assemble: 
+#    src: "{{ reports_dir }}"
+#    dest: "{{ reports_dir }}comprehensive.md"  
+#    regexp: ".*.md" 
+#    delimiter: "---"
+#  run_once: true
+#  delegate_to: localhost
+#  delegate_facts: True
+#  changed_when: False
+#  notify: ARCHIVE PLAY OUTPUT 
+#  tags: reports ios nxos eos cisco arista pan
+
+#- name: NOTIFY EMAIL HANDLER
+#  debug:
+#    msg: "Emailing you the results!"
+#  notify: SEND CONFIRMATION EMAIL
+#  run_once: true
+#  delegate_to: localhost
+#  delegate_facts: True
+#  changed_when: True
+#  when: (send_email == 'true')

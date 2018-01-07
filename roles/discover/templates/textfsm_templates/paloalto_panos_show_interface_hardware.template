@@ -1,0 +1,11 @@
+Value INTF (\S+)
+Value SPEED (\d+|\[n\/a\]|\w+)
+Value DUPLEX (\S+)
+Value STATE (\S+)
+Value MAC (\S+)
+
+Start
+  #^${INTF}\s+\d+\s+[n/a]/[n/a]/${STATE}\s+${MAC} -> Record
+  ^${INTF}\s+\d+\s+${SPEED}\/${DUPLEX}\/${STATE}\s+${MAC} -> Record
+  ^${INTF}\s+\d+\s+${SPEED}/${DUPLEX}/${STATE}\s+${MAC} -> Record
+ 

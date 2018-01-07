@@ -1,0 +1,11 @@
+Value Fillup FILE_SYSTEM (\S+)
+Value SIZE (\d+)
+Value DATE_TIME ((<no date>)|(\w+\s+\d+\s+\d+:\d+:\d+\s+\d+))
+Value NAME (\S+)
+
+Start
+  ^((\s+)${SIZE})\s+${DATE_TIME}\s+${NAME} -> Record
+  ^[Uu]sage\s+[Ff]or\s+${FILE_SYSTEM} -> Clear Start
+
+#
+EOF

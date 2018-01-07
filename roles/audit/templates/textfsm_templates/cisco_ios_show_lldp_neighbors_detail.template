@@ -1,0 +1,42 @@
+Value Filldown LOCAL_INTF (\S+)
+Value Key CHASSIS_ID (\S+)
+Value PORT_ID (\S+)
+Value PORT_DESCRIPTION (.*)
+Value SYSTEM_NAME (.*)
+Value SYSTEM_DESCRIPTION (.*)
+Value SYSTEM_CAPABILITIES (.*)
+Value ENABLED_CAPABILITIES (.*)
+Value MANAGEMENT_IP (.*)
+Value AUTO_NEGOTIATION (.*)
+Value List PHYSICAL_MEDIA (.*)
+Value VLAN_ID (.*)
+
+Start
+  ^[Ll]ocal\s+[Ii]ntf:\s+${LOCAL_INTF}
+  ^[Cc]hassis\s+[Ii][Dd]:\s+${CHASSIS_ID}
+  ^[Pp]ort\s+[Ii][Dd]:\s+${PORT_ID}
+  ^[Pp]ort\s+[Dd]escription[(\s+)|:]-?\s+${PORT_DESCRIPTION}
+  ^[Ss]ystem\s+[Nn]ame[(\s+)|:]-?\s+${SYSTEM_NAME}
+  ^[Ss]ystem\s+[Dd]escription\s+-\s+${SYSTEM_DESCRIPTION}
+  ^[Ss]ystem\s+[Dd]escription: -> DESCRIPTION
+  ^[Ss]ystem\s+[Cc]apabilities[(\s+)|:]-?\s+${SYSTEM_CAPABILITIES}
+  ^[Ee]nabled\s+[Cc]apabilities[(\s+)|:]-?\s+${ENABLED_CAPABILITIES}
+  ^[Mm]anagement\s+[Aa]ddresses\s+-\s+${MANAGEMENT_IP}
+  ^[Mm]anagement\s+[Aa]ddresses: -> MGMT
+  ^[Aa]uto\s+[Nn]egotiation\s+-\s+${AUTO_NEGOTIATION}
+  ^[Pp]hysical\s+[Mm]edia\s+[Cc]apabilities\s+-\s+${PHYSICAL_MEDIA}
+  ^[Pp]hysical\s+[Mm]edia\s+[Cc]apabilities: -> PHYSICAL_MEDIA
+  ^[Vv]lan\s+[Ii][Dd]:(\s+-)?\s+${VLAN_ID} -> Record Start
+
+
+DESCRIPTION
+  ^${SYSTEM_DESCRIPTION} -> Start
+  ^[Tt]ime\s+[Rr]emaining -> Start
+
+MGMT
+  ^\s+IP(v4)?:\s+${MANAGEMENT_IP} -> Start
+  ^[Aa]uto\s+[Nn]egotiation -> Start
+
+PHYSICAL_MEDIA
+  ^\s+${PHYSICAL_MEDIA}
+  ^[Mm]edia\s+[Aa]ttachment -> Start

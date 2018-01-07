@@ -1,0 +1,164 @@
+DEVICE: {{ inventory_hostname }}
+================================
+
+{% if panos_audit_score.response[0] is defined %}
+AUDIT RESULTS:
+------------
+
+| SECTION |    DESCRIPTION    | RESULT |
+| :------ | :---------------: | :----- |
+{% for response in panos_audit_score.response %}
+| 1		| 				 DEVICE SETUP  						 						|   |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 1.1	| 			GENERAL SETTINGS												|	|
+| 1.1.1	| Ensure "Login Banner" is Set 		| {% if response.get('motd_enable') == 'yes' and response.get('motd_message') is defined %}PASS {% else %} FAIL {% endif %} |
+| 1.1.2	| Ensure "Enable Log on High DP Load" is enabled | {% if response.get('high_dp_log') == 'yes' %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 1.2	| 			  MANAGEMENT INTERFACE SETTINGS 							 	|	|
+| 1.2.1	| Ensure 'Permitted IP Addresses' is set to those necessary for device management (Scored)	| {% if response.get('permitted_ip') is defined %}PASS {% else %} FAIL {% endif %} |
+| 1.2.2 | Ensure 'Permitted IP Addresses' is set for all management profiles where SSH, HTTPS, or SNMP is enabled (Scored)	|
+{%- if response.get('int_mgmt_profile_ssh') is defined -%}
+{%- for i in response.get('int_mgmt_profile_ssh') -%}
+{%- if not (i in response.get('int_mgmt_profile_permitted_ip')) %}
+SSH>{{ i }}>>>FAIL {% else %} SSH>{{ i }}>>>PASS {% endif %}
+{% endfor -%}
+{%- endif -%}
+{%- if response.get('int_mgmt_profile_snmp') is defined -%}
+{%- for i in response.get('int_mgmt_profile_snmp') -%}
+{%- if not (i in response.get('int_mgmt_profile_permitted_ip')) %}
+SNMP>{{ i }}>>>FAIL {% else %} SNMP>{{ i }}>>>PASS {% endif %}
+{% endfor -%}
+{%- endif -%}
+{%- if response.get('int_mgmt_profile_https') is defined -%}
+{%- for i in response.get('int_mgmt_profile_https') -%}
+{%- if not (i in response.get('int_mgmt_profile_permitted_ip')) %}
+HTTPS>{{ i }}>>>FAIL {% else %} HTTPS>{{ i }}>>>PASS {% endif %}
+{% endfor -%}
+{%- endif -%}
+{%- if (response.get('int_mgmt_profile_ssh') is not defined) and (response.get('int_mgmt_profile_snmp') is not defined) and (response.get('int_mgmt_profile_https') is not defined) -%} PASS 
+{%- endif %}|
+| 1.2.3 | Ensure HTTP and Telnet options are disabled for the Management Interface (Scored) | {% if response.get('disable_telnet') == 'yes' and response.get('disable_http') == 'yes' %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 1.3	| 			 MINIMUM PASSWORD REQUIREMENRS 									|	|
+| 1.3.1 | Ensure 'Minimum Password Complexity' is enabled (Scored) | {% if (response.get('pwd_complexity_enable') == 'yes' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.2 | Ensure 'Minimum Length' is greater than or equal to 12 (Scored) | {% if (response.get('pwd_min_len') >= '12' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.3 | Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords (Scored) | {% if (response.get('pwd_history_cnt') >= '24' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.4 | Ensure 'Required Password Change Period' is less than or equal to 90 days (Scored) | {% if (response.get('pwd_expiration_period') >= '24' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.5 | Ensure 'Password Profiles' do not exist (Scored) | {% if (response.get('pwd_profile') == '' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.6 | Ensure 'Minimum Uppercase Letters' is greater than or equal to 1 (Scored) | {% if (response.get('pwd_min_uppercase') >= '1' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.7 | Ensure 'Minimum Lowercase Letters' is greater than or equal to 1 (Scored) | {% if (response.get('pwd_min_lowercase') >= '1' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.8 | Ensure 'Minimum Numeric Letters' is greater than or equal to 1 (Scored) 	| {% if (response.get('pwd_min_numeric') >= '1' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.9 | Ensure 'Minimum Special Characters' is greater than or equal to 1 (Scored) | {% if (response.get('pwd_min_special') >= '1' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.10 | Ensure 'Block Username Inclusion' is enabled (Scored) 					| {% if (response.get('pwd_block_username') == 'yes' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.3.11 | Ensure 'New Password Differs By Characters' is greater than or equal to 3 (Scored) |	{% if (response.get('pwd_block_repeated') >= '3' ) %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 1.4	| 			 AUTHENTICATION SETTINGS (FOR DEVICE MGMT) 						|	|
+| 1.4.1 | Ensure 'Idle timeout' is less than or equal to 10 minutes for device management (Scored) | {% if (response.get('idle_timeout') <= '10' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.4.2 | Ensure 'Failed Attempts' and 'Lockout Time' for Authentication Profile are properly configured (Scored) |	{% if (response.get('lockout_time') >= '15' ) %}PASS {% else %} FAIL {% endif %} |
+| 1.5.1 | Ensure 'V3' is selected for SNMP polling (Scored) 						|{% if response.get('snmp_version') == 'v3' %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 1.6   | 			  DEVICE SERVICES SETTINGS  									|	|
+| 1.6.1 | Ensure 'Verify Update Server Identity' is enabled (Scored) 				|{% if response.get('server_verification') == 'yes' %}PASS {% else %} FAIL {% endif %} |
+| 1.6.2 | Ensure redundant 'NTP servers' are configured appropriately (Scored) 		|{% if (response.get('ntp_primary') is defined) and (response.get('ntp_secondary') is defined) %}PASS {% else %} FAIL {% endif %} |
+| 1.6.3 | Ensure that the certificate securing Remote Access VPNs is valid (Not Scored) |
+{%- if response.get('cert_gateway_prof') is defined and response.get('cert_ssl_tls_prof') is defined -%}
+	{%- for x in response.get('cert_ssl_tls_prof') -%}
+			{%- if x in (response.get('cert_gateway_prof')) -%}
+				{%- if (response.get('cert_name')[loop.index0]) is defined -%}
+				{%- set cert = (response.get('cert_name')[loop.index0]) -%}
+					{%- for item in response.get('cert_list_name') -%}
+						{%- set loop_offset = (response.get('cert_name')[loop.index0]) -%}
+						{%- if item == cert -%}{{ cert }}: Start>>>{{ response.get('cert_valid_start')[loop.index0] }} End>>>{{ response.get('cert_valid_end')[loop.index0] }}
+						{#- {{ loop.cycle(response.get('cert_valid_start')[loop.index0], response.get('cert_valid_end')[loop.index0]) }} -#}
+						{%- endif -%}
+					{%- endfor -%}
+				{%- endif -%}
+			{%- endif -%}
+	{%- endfor -%}
+{%- endif -%}|
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 2		| 			 **USER IDENTIFICATION**  											|	|
+| 2.1	| Ensure that IP addresses are mapped to usernames (Scored) 				|{% if response.get('uid_users_mapped') >= '0' %}PASS {% else %} FAIL {% endif %} |
+| 2.2	| Ensure that WMI probing is disabled (Scored)								|{% if response.get('uid_probing') == 'no' %}PASS {% else %} FAIL {% endif %} |
+| 2.3	| Ensure that User-ID is only enabled for internal trusted interfaces (Scored) | Interface/Zone Audit Required |
+| 2.4	| Ensure that 'Include/Exclude Networks' is used if User-ID is enabled (Scored) |{% if response.get('uid_networks') != '' %}PASS {% else %} FAIL {% endif %} |
+| 2.5 	| Ensure that the User-ID Agent has minimal permissions if User-ID is enabled (Scored)	| AD Membership Audit Required |
+| 2.6	| Ensure that the User-ID service account does not have interactive logon rights (Scored) |	AD Membership Audit Required |
+| 2.7	| Ensure remote access capabilities for the User-ID service account are forbidden. (Not Scored) | AD Membership Audit Required |
+| 2.8	| Ensure that security policies restrict User-ID Agent traffic from crossing into untrusted zones (Scored) | Security Policy Audit Required |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 3		| 			**HIGH AVAILABILITY**   											|	|
+| 3.1	| Ensure a fully-synchronized High Availability peer is configured (Scored)	|{% if response.get('ha_enable') == 'no' or (response.get('ha_enable') == 'yes' and (response.get('ha_synchronization') == 'yes' and response.get('ha_state_synchronization') == 'yes')) %}PASS {% else %} FAIL {% endif %} |
+| 3.2	| Ensure 'High Availability' requires Link Monitoring and/or Path Monitoring (Scored)	|{% if response.get('ha_enable') == 'no' or (response.get('ha_enable') == 'yes' and (response.get('ha_link_monitor_enable') == 'yes' or response.get('ha_path_monitor_enable') == 'yes')) %}PASS {% else %} FAIL {% endif %} |
+| 3.3	| Ensure 'Passive Link State' and 'Preemptive' are configured appropriately (Scored)	|{% if response.get('ha_enable') == 'no' or (response.get('ha_enable') == 'yes' and (response.get('ha_preemptive') == 'yes' and response.get('ha_link_state') == 'shutdown')) or (response.get('ha_enable') == 'yes' and (response.get('ha_preemptive') == 'no' and response.get('ha_link_state') == 'auto')) %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 4		| 			 **DYNAMIC UPDATES**  												|	|
+| 4.1	| Ensure 'Antivirus Update Schedule' is set to download and install updates hourly (Scored)	|{% if response.get('update_av') == 'hourly' and response.get('update_av_action') == 'download-and-install' %}PASS {% else %} FAIL {% endif %} |
+| 4.2	| Ensure 'Applications and Threats Update Schedule' is set to download and install updates daily (Scored)	|{% if (response.get('update_threat') == 'hourly' or response.get('update_threat') == 'daily' or response.get('update_threat') == 'every-30-mins') and (response.get('update_threat_action') == 'download-and-install') and (response.get('update_app') == 'daily') and (response.get('update_app_action') == 'download-and-install') %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 5		| 				 **WILDFIRE**  													|	|
+| 5.1	| Ensure that WildFire file size upload limits are maximized (Scored)		|{% if response.get('wildfire_flash') == '10' and response.get('wildfire_jar') == '10' and response.get('wildfire_mac') == '50' and response.get('wildfire_ms_office') == '10000' and response.get('wildfire_pdf') == '1000' and response.get('wildfire_pe') == '10' %}PASS {% else %} FAIL {% endif %} |
+| 5.2	| Ensure forwarding is enabled for all applications and file types in WildFire file blocking profiles (Scored)	|
+{%- if response.get('wf_analysis_prof') is defined -%}
+	{%- for i in response.get('wf_analysis_prof') -%}
+		{%- if (response.get('wf_analysis_location')[loop.index0] == 'public-cloud' or response.get('wf_analysis_location')[loop.index0] == 'private-cloud') and (response.get('wf_analysis_direction')[loop.index0] == 'both') and (response.get('wf_analysis_file')[loop.index0] == 'any') and (response.get('wf_analysis_app')[loop.index0] == 'any') -%}{{ i }}>>>PASS{% else %}{{ i }}>>>FAIL
+		{%- endif -%}
+	{%- endfor -%}
+{%- endif -%}|
+| 5.3	| Ensure a WildFire file blocking profile is enabled for all security policies allowing Internet traffic flows (Scored)	| Security Policy Audit Required |
+| 5.4	| Ensure forwarding of decrypted content to WildFire is enabled (Scored)	|{% if response.get('wf_allow_decrypt_fwd') == 'yes' %}PASS {% else %}FAIL {% endif %} |
+| 5.5	| Ensure all WildFire session information settings are enabled (Scored)		|{% if (response.get('wildfire_exclude_app') == 'no') and  (response.get('wildfire_exclude_dest_ip') == 'no') and (response.get('wildfire_exclude_dest_port') == 'no') and (response.get('wildfire_exclude_email_rec') == 'no') and (response.get('wildfire_exclude_email_send') == 'no') and (response.get('wildfire_exclude_email_sub') == 'no') and (response.get('wildfire_exclude_filename') == 'no') and (response.get('wildfire_exclude_src_ip') == 'no') and (response.get('wildfire_exclude_src_port') == 'no') and (response.get('wildfire_exclude_url') == 'no') and (response.get('wildfire_exclude_username') == 'no') and (response.get('wildfire_exclude_vsys_id') == 'no') %}PASS {% else %}FAIL {% endif %}|
+| 5.6	| Ensure alerts are enabled for malicious files detected by WildFire (Scored)	|
+| 5.7	| Ensure 'WildFire Update Schedule' is set to download and install updates every 15 minutes [or sooner] (Scored)	|{% if (response.get('update_wildfire') == 'every-15-minutes' or response.get('update_wildfire') == 'every-min') and response.get('update_wildfire_action') == 'download-and-install' %}PASS {% else %} FAIL {% endif %} |
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 6		| 			 SECURITY PROFILES  											|	|
+| 6.1	| Ensure at least one antivirus profile is set to block on all decoders except 'imap' and 'pop3' (Scored)	|
+{%- for profile in response.get('virus_prof_name') -%}
+{{ profile }}>>>
+{%- if (response.get('virus_ftp_action')[loop.index0] == 'reset-both' or response.get('virus_ftp_action')[loop.index0] == 'drop') and (response.get('virus_ftp_wf_action')[loop.index0] == 'reset-both' or response.get('virus_ftp_wf_action')[loop.index0] == 'drop') and (response.get('virus_http_action')[loop.index0] == 'reset-both' or response.get('virus_http_action')[loop.index0] == 'drop') and (response.get('virus_http_wf_action')[loop.index0] == 'reset-both' or response.get('virus_http_wf_action')[loop.index0] == 'drop') and (response.get('virus_smb_action')[loop.index0] == 'reset-both' or response.get('virus_smb_action')[loop.index0] == 'drop') and (response.get('virus_smb_wf_action')[loop.index0] == 'reset-both' or response.get('virus_smb_wf_action')[loop.index0] == 'drop') and (response.get('virus_smtp_action')[loop.index0] == 'reset-both' or response.get('virus_smtp_action')[loop.index0] == 'drop') and (response.get('virus_smtp_wf_action')[loop.index0] == 'reset-both' or response.get('virus_smtp_wf_action')[loop.index0] == 'drop') %}PASS {% else %}FAIL 
+{% endif %}
+{%- endfor -%}|
+| 6.2	| Ensure a secure antivirus profile is applied to all relevant security policies (Scored)	|
+{%- for rule in response.get('virus_security_rule') -%}
+{%- if response.get('virus_security_profile')[loop.index0] is defined %} {{ rule }}>>>PASS {% else %} FAIL 
+{% endif %}
+{%- endfor -%}|
+| 6.3	| Ensure an anti-spyware profile is configured to block on all spyware severity levels, categories, and threats (Scored)	|	|
+{#%- for profile in response.get('spyware_prof_name') -%}
+{{ profile }}:   
+{%- if (response.get('virus_ftp_action')[loop.index0] == 'reset-both' or response.get('virus_ftp_action')[loop.index0] == 'drop') and (response.get('virus_ftp_wf_action')[loop.index0] == 'reset-both' or response.get('virus_ftp_wf_action')[loop.index0] == 'drop') and (response.get('virus_http_action')[loop.index0] == 'reset-both' or response.get('virus_http_action')[loop.index0] == 'drop') and (response.get('virus_http_wf_action')[loop.index0] == 'reset-both' or response.get('virus_http_wf_action')[loop.index0] == 'drop') and (response.get('virus_smb_action')[loop.index0] == 'reset-both' or response.get('virus_smb_action')[loop.index0] == 'drop') and (response.get('virus_smb_wf_action')[loop.index0] == 'reset-both' or response.get('virus_smb_wf_action')[loop.index0] == 'drop') and (response.get('virus_smtp_action')[loop.index0] == 'reset-both' or response.get('virus_smtp_action')[loop.index0] == 'drop') and (response.get('virus_smtp_wf_action')[loop.index0] == 'reset-both' or response.get('virus_smtp_wf_action')[loop.index0] == 'drop') %} PASS {% else %} FAIL 
+{%- endif -%}
+{%- endfor -%#}
+| 6.4	| Ensure DNS sinkholing is configured on all anti-spyware profiles in use (Scored)	|
+{%- for profile in response.get('spyware_prof_name') %}
+{{ profile }}>>>
+	{%- if (response.get('spyware_botnet_action')[loop.index0] == 'sinkhole') and (response.get('spyware_sinkhole_ipv4')[loop.index0] is defined or response.get('spyware_sinkhole_ipv6')[loop.index0] is defined) %}PASS {% else %}FAIL 
+	{% endif %}
+{%- endfor %}|
+| 6.5	| Ensure passive DNS monitoring is set to enabled on all anti-spyware profiles in use (Scored)	|{% if response.get('update_passive_dns') == 'yes' %}PASS {% else %} FAIL {% endif %} |
+| 6.6	| Ensure a secure anti-spyware profile is applied to all security policies permitting traffic to the Internet (Scored)	|	|
+| 6.7	| Ensure a Vulnerability Protection Profile is set to block attacks against critical and high vulnerabilities, and set to default on medium, low, and informational vulnerabilities (Scored)	|	|
+| 6.8	| Ensure a secure Vulnerability Protection Profile is applied to all security rules allowing traffic (Scored)	|	|
+| 6.9	| Ensure that PAN-DB URL Filtering is used (Scored)							|	|
+| 6.10	| Ensure that URL Filtering uses the action of “block” or “override” on the <enterprise approved value> URL categories (Scored)	|	|
+| 6.11	| Ensure that access to every URL is logged (Scored)						|	|
+| 6.12	| Ensure all HTTP Header Logging options are enabled (Scored)				|	|
+| 6.13	| Ensure secure URL filtering is enabled for all security policies allowing traffic to the Internet (Scored)	|	|
+| 6.14	| Ensure alerting after a threshold of credit card or Social Security numbers is detected is enabled (Scored)	|	|
+| 6.15	| Ensure a secure Data Filtering profile is applied to all security policies allowing traffic to or from the Internet (Scored)	|	|
+| 6.16	| Ensure that a Zone Protection Profile with an enabled SYN Flood Action of SYN Cookies is attached to all untrusted zones (Scored)	|	|
+| 6.17	| Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled for all flood types is attached to all untrusted zones (Scored)	|	|
+| 6.18	| Ensure that all zones have Zone Protection Profiles with all Reconnaissance Protection settings enabled, tuned, and set to appropriate actions (Scored)	|	|
+| 6.19	| Ensure all zones have Zone Protection Profiles that drop specially crafted packets (Scored)	|	|
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 7		| 			  SECURITY POLICY 												|	|
+| 7.1	| Ensure application security policies exist when allowing traffic from an untrusted zone to a more trusted zone (Scored)	|	|
+| 7.2	| Ensure 'Service setting of ANY' in a security policy allowing traffic does not exist (Scored)	|	|
+| 7.3	| Ensure 'Security Policy' denying any/all traffic exists at the bottom of the security policies ruleset (Scored) 	|	|
+|-------|---------------------------------------------------------------------------|----------------------------------------|
+| 8		| 			DECRYPTION  													|	|
+| 8.1	| Ensure 'SSL Forward Proxy Policy' for traffic destined to the Internet is configured (Scored)	|	|
+| 8.2	| Ensure 'SSL Inbound Inspection' is required for all untrusted traffic destined for servers using SSL or TLS (Scored)	|	|
+| 8.3	| Ensure that the Certificate used for Decryption is Trusted (Not Scored)	|	|
+{% endfor %}
+{% endif %}

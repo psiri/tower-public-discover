@@ -1,0 +1,120 @@
+DEVICE: {{ inventory_hostname }}
+================================
+
+
+| VENDOR | OS VERSION | MODEL | SERIAL | BASE MAC | IMAGE FILE | UPTIME | LICENSE |
+| :----: | :--------: | :---: | :----: | :------: | :--------: | :----: | :-----: |
+| Cisco  | {{ device_info.response[0]['version'] }} | {% for device in device_info.response[0]['hardware'] %} {{ device }} {% endfor %} | {% for sn in device_info.response[0]['serial'] %} {{ sn }} {% endfor %} | {% for mac in device_info.response[0]['base_mac'] %} {{ mac }} {% endfor %} | {{ device_info.response[0]['running_image'] }} | {% for time in device_info.response[0]['uptime'] %}{{ time }}{% endfor %} | {% for license in device_info.response[0]['license_level'] %} {{ license }} {% endfor %} |
+
+
+
+| INTERFACE | DESCRIPTION | IP ADDR/MASK | MAC ADDR | STATUS | PROTOCOL |   BW  |  MTU  | DUPLEX | SPEED | MEDIA TYPE |
+| :-------- | :---------- | :----------: | :------: | :----: | :------: | :---: | :---: | :----: | :---: | :--------: |
+{% for interface in interface_info.response %}
+| {{ interface.get('interface') }} {% if interface.membership is defined %}{{ interface.get('membership') }}{% endif %} | {{ interface.get('description') }} | {{ interface.get('ip_address') }} | {{ interface.get('address') }} | {{ interface.get('link_status') }} | {{ interface.get('protocol_status') }} | {{ interface.get('bandwidth') }} | {{ interface.get('mtu') }} | {{ interface.get('duplex') }} | {{ interface.get('speed') }} | {{ interface.get('media_type') }} |
+{% endfor %}
+
+
+{% if port_channel_info is defined %}
+{% if port_channel_info.response[0] is defined %}
+| PORT-CHANNEL | FLAGS | PROTOCOL | PORTS |
+| :----------- | :---: | :------: | :---- |
+{% for response in port_channel_info.response %}
+| {{ response.get('port_channel') }} |  {{ response.get('port_channel_flags') }} | {{ response.get('protocol') }} | {{ response.get('ports') }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if vlan_info.response is defined %}
+{{ inventory_hostname }} VLAN(s):
+-----------------------------------
+| VLAN ID | NAME | STATUS |
+| :------ | :--- | :----: |
+{% for vlan in vlan_info.response %}
+| {{ vlan.get('vlan_id') }} | {{ vlan.get('name') }} | {{ vlan.get('status') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+{% if cdp_neighbors.response[0] is defined %}
+CDP NEIGHBORS:
+--------------
+| LOCAL PORT | NEIGHBOR | REMOTE PORT | NEIGHBOR IP | CDP VERS | PLATFORM | SOFTWARE INFO |
+| :--------- | :------: | :---------- | :---------- | :------: | :------: | :-----------: |
+{% for neighbor in cdp_neighbors.response %}
+| {{ neighbor.get('local_port') }} | {{ neighbor.get('neighbor') }} | {{ neighbor.get('remote_port') }} | {{ neighbor.get('neighbor_ip') }} | {{ neighbor.get('advertisement') }} | {{ neighbor.get('platform') }} | {{ neighbor.get('software_version') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if lldp_neighbors.response[0] is defined %}
+LLDP NEIGHBORS:
+---------------
+| LOCAL INTF | NEIGHBOR | SYSTEM DESCRIPTION | REMOTE PORT | PORT DESC | VLAN | CHASSIS ID | MGMT IP | CAPABILITIES | ENABLED CAPABILITIES | PHYSICAL CAPABILITIES | AUTO NEGOTIATION |
+| :--------- | :------: | :----------------: | :---------: | :-------: | :--- | :--------: | :-----: | :----------: | :------------------: | :-------------------: | :--------------: |
+{% for response in lldp_neighbors.response %}
+| {{ response.get('local_intf') }} | {{ response.get('system_name') }} | {{ response.get('system_description') }} | {{ response.get('port_id') }} | {{ response.get('port_description') }} | {{ response.get('vlan_id') }} | {{ response.get('chassis_id') }} | {{ response.get('management_ip') }} | {{ response.get('system_capabilities') }} | {{ response.get('enabled_capabilities') }} | {% for setting in response.get('physical_media') %} {{ setting }} {% endfor %} | {{ response.get('auto_negotiation') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+{% if inventory_info.response[0] is defined %}
+{{ inventory_hostname }} INVENTORY:
+-----------------------------------
+| NAME | DESCRIPTION | PID |  VID  |   SN  |
+| :--- | :---------- | --- | :---: | :---- |
+{% for part in inventory_info.response %}
+| {{ part.get('name') }} | {{ part.get('descr') }} | {{ part.get('pid') }} | {{ part.get('vid') }} | {{ part.get('sn') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if routing_info.response[0] is defined %}
+{{ inventory_hostname }} ROUTES:
+-----------------------------------
+| PROTOCOL | TYPE | NETWORK | MASK | DISTANCE | METRIC | NEXT HOP IP | NEXT HOP INT |
+| -------: | :--- | :------ | :--- | :------- | :----- | :---------- | :----------- |
+{% for route in routing_info.response %}
+| {{ route.get('protocol') }} | {{ route.get('type') }} | {{ route.get('network') }} | {{ route.get('mask') }} | {{ route.get('distance') }} | {{ route.get('metric') }} | {{ route.get('nexthopip') }} | {{ route.get('nexthopif') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+{% if ospf_info.response[0] is defined %}
+{{ inventory_hostname }} OSPF NEIGHBORS:
+----------------------------------------
+| NEIGHBOR_ID |  ADDRESS | INTERFACE | STATE | PRIORITY | DEAD_TIME |
+| :---------- | :------- | :-------- | :---: | :------- | :-------: |
+{% for response in ospf_info.response %}
+| {{ response.get('neighbor_id') }} | {{ response.get('address') }} | {{ response.get('interface') }} | {{ response.get('state') }} | {{ response.get('priority') }} | {{ response.get('dead_time') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+
+
+{% if dir_info.response is defined %}
+{{ inventory_hostname }} Dir:
+-----------------------------
+| FILE SYSTEM |  NAME | PERMISSIONS | MODIFIED | SIZE (B) |
+| :---------- | :---- | :---------- | :------: | :------- |
+{% for response in dir_info.response %}
+| {{ response.get('file_system') }} | {{ response.get('name') }} | {{ response.get('permissions') }} | {{ response.get('date_time') }} | {{ response.get('size') }} |
+{% endfor %}
+{% endif %}

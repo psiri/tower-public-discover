@@ -1,0 +1,193 @@
+Value Filldown GROUP (\d+)
+Value Required MODE (\S+)
+Value STATE (\S+)
+Value HA1_IP (\S+)
+Value HA1_MAC (\S+)
+Value HA1_INTERFACE (\S+)
+Value HA1_LINK_STATE (\S+)
+Value HA1_LINK_SETTING (\S+)
+Value HA1_B_IP (\S+)
+Value HA1_B_MAC (\S+)
+Value HA1_B_INTERFACE (\S+)
+Value HA1_B_LINK_STATE (\S+)
+Value HA1_B_LINK_SETTING (\S+)
+Value HA2_IP (\S+)
+Value HA2_MAC (\S+)
+Value HA2_INTERFACE (\S+)
+Value HA2_LINK_STATE (\S+)
+Value HA2_LINK_SETTING (\S+)
+Value HA2_B_IP (\S+)
+Value HA2_B_MAC (\S+)
+Value HA2_B_INTERFACE (\S+)
+Value HA2_B_LINK_STATE (\S+)
+Value HA2_B_LINK_SETTING (\S+)
+Value PRIORITY (\d+)
+Value PREEMPTIVE (\w+)
+Value PASSIVE_LINK_STATE (\S+)
+Value VERSION_BUILD (\S+)
+Value VERSION_URL (\S+)
+Value VERSION_APP (\S+)
+Value VERSION_ANTIVIRUS (\S+)
+Value VERSION_THREAT (\S+)
+Value VERSION_VPN_CLIENT (.*)
+Value VERSION_GLOBALPROTECT (\S+)
+Value SW_VERSION (\S+)
+Value APP_CONTENT_COMPATIBILITY (\w+)
+Value ANTI_VIRUS_COMPATIBILITY (\w+)
+Value THREAT_CONTENT_COMPATIBILITY (\w+)
+Value VPN_CLIENT_SW_COMPATIBILITY (\w+)
+Value GLOBAL_PROTECT_CLIENT_SW_COMPATIBILITY (\w+)
+Value STATE_SYNC (\S+)
+Value PEER_CONNECTION_STATUS (\w+)
+Value PEER_HA_MODE (\S+)
+Value PEER_STATE (.*)
+Value PEER_V4_MANAGEMENT (\S+)
+Value PEER_HA1_IP (\S+)
+Value PEER_HA1_MAC (\S+)
+Value PEER_HA1_LINK_STATE (\S+)
+Value PEER_HA1_B_IP (\S+)
+Value PEER_HA1_B_MAC (\S+)
+Value PEER_HA1_B_LINK_STATE (\S+)
+Value PEER_HA2_IP (\S+)
+Value PEER_HA2_MAC (\S+)
+Value PEER_HA2_LINK_STATE (\S+)
+Value PEER_HA2_B_IP (\S+)
+Value PEER_HA2_B_MAC (\S+)
+Value PEER_HA2_B_LINK_STATE (\S+)
+Value PEER_ELECTION_PRIORITY (\d+)
+Value PEER_ELECTION_PREEMPTIVE (\w+)
+Value PEER_VERSION_BUILD (\S+)
+Value PEER_VERSION_URL (\S+)
+Value PEER_VERSION_APP (\S+)
+Value PEER_VERSION_ANTIVIRUS (\S+)
+Value PEER_VERSION_THREAT (\S+)
+Value PEER_VERSION_VPN_CLIENT (.*)
+Value PEER_VERSION_GLOBALPROTECT (\S+)
+Value LINK_MONITORING_ENABLED (\w+)
+Value LINK_MONITORING_CONDITION (\S+)
+Value PATH_MONITORING_ENABLED (\w+)
+Value PATH_MONITORING_CONDITION (\S+)
+Value CONFIG_SYNC (\w+)
+Value RUNNING_CONFIGURATION (\w+)
+
+Start
+  ^Group\s+${GROUP}:
+  ^\s+Mode:\s+${MODE}
+  ^\s+State:\s+${STATE}
+  ^\s+Peer\s+Information: -> Continue
+  ^\s+HA1\sControl\sLinks\sJoint\sConfiguration: -> HA1
+  ^\s+HA1\s+Backup\s+Control\s+Link\s+Information: -> HA1_B
+  ^\s+HA2\s+Data\s+Link.* -> HA2
+  ^\s+HA2\s+Backup\s+Data\s+Link\s+Information: -> HA2_B
+  ^\s+Priority:\s+${PRIORITY}
+  ^\s+Preemptive:\s+${PREEMPTIVE}
+  ^\s+Passive\s+Link\s+State:\s+${PASSIVE_LINK_STATE}
+  ^\s+Version\sInformation: -> VersionInformation
+  ^\s+Version\sCompatibility: -> Compatibility
+  ^\s+Peer\sInformation: -> Peer
+  ^\s+Link\sMonitoring\sInformation: -> Link
+  ^\s+Path\s+Monitoring\s+Information: -> Path
+  ^\s+Configuration\s+Synchronization: -> Sync
+
+HA1
+  ^\s+IP\s+Address:\s+${HA1_IP}
+  ^\s+MAC\s+Address:\s+${HA1_MAC}
+  ^\s+Interface:\s+${HA1_INTERFACE}
+  ^\s+Link\sState:\s${HA1_LINK_STATE};\s+Setting:\s+${HA1_LINK_SETTING} -> Start
+
+HA1_B
+  ^\s+IP\s+Address:\s+${HA1_B_IP}
+  ^\s+MAC\s+Address:\s+${HA1_B_MAC}
+  ^\s+Interface:\s+${HA1_B_INTERFACE}
+  ^\s+Link\sState:\s${HA1_B_LINK_STATE};\s+Setting:\s+${HA1_B_LINK_SETTING} -> Start
+
+HA2
+  ^\s+IP\s+Address:\s+${HA2_IP}
+  ^\s+MAC\s+Address:\s+${HA2_MAC}
+  ^\s+Interface:\s+${HA2_INTERFACE}
+  ^\s+Link\s+State:\s+${HA2_LINK_STATE};\s+Setting:\s+${HA2_LINK_SETTING} -> Start
+
+HA2_B
+  ^\s+IP\s+Address:\s+${HA2_B_IP}
+  ^\s+MAC\s+Address:\s+${HA2_B_MAC}
+  ^\s+Interface:\s+${HA2_B_INTERFACE}
+  ^\s+Link\sState:\s${HA2_B_LINK_STATE};\s+Setting:\s+${HA2_B_LINK_SETTING} -> Start
+
+VersionInformation
+  ^\s+Build\s+Release:\s+${VERSION_BUILD}
+  ^\s+URL\s+Database:\s+${VERSION_URL}
+  ^\s+Application\s+Content:\s+${VERSION_APP}
+  ^\s+Anti-Virus:\s+${VERSION_ANTIVIRUS}
+  ^\s+Threat\s+Content:\s+${VERSION_THREAT}
+  ^\s+VPN\s+Client\s+Software:\s+${VERSION_VPN_CLIENT}
+  ^\s+Global\s+Protect\s+Client\s+Software:\s+${VERSION_GLOBALPROTECT} -> Start
+
+Compatibility
+  ^\s+Software\s+Version:\s+${SW_VERSION}
+  ^\s+Application\sContent\sCompatibility:\s+${APP_CONTENT_COMPATIBILITY}
+  ^\s+Anti-Virus\sCompatibility:\s+${ANTI_VIRUS_COMPATIBILITY}
+  ^\s+Threat\sContent\sCompatibility:\s+${THREAT_CONTENT_COMPATIBILITY}
+  ^\s+VPN\sClient\sSoftware\sCompatibility:\s+${VPN_CLIENT_SW_COMPATIBILITY}
+  ^\s+Global\sProtect\sClient\sSoftware\sCompatibility:\s+${GLOBAL_PROTECT_CLIENT_SW_COMPATIBILITY}
+  ^\s+State\sSynchronization:\s${STATE_SYNC};.* -> Start
+
+Peer
+  ^\s+Connection\s[Ss]tatus:\s+${PEER_CONNECTION_STATUS}
+  ^\s+Mode:\s+${PEER_HA_MODE}
+  ^\s+State:\s+${PEER_STATE}
+  ^\s+Management\s+IPv4\s+Address:\s+${PEER_V4_MANAGEMENT}
+  ^\s+HA1\sControl\sLink\sInformation: -> PEER_HA1
+
+
+PEER_HA1
+  ^\s+IP\s+Address:\s+${PEER_HA1_IP}
+  ^\s+MAC\s+Address:\s+${PEER_HA1_MAC}
+  ^\s+Connection\s+${PEER_HA1_LINK_STATE};.*
+  ^\s+HA1\sBackup\s+Control\s+Link\s+Information: -> PEER_HA1_B
+
+PEER_HA1_B
+  ^\s+IP\s+Address:\s+${PEER_HA1_B_IP}
+  ^\s+MAC\s+Address:\s+${PEER_HA1_B_MAC}
+  ^\s+Connection\s+${PEER_HA1_B_LINK_STATE}
+  ^\s+HA2\s+Data\s+Link\s+Information: -> PEER_HA2
+
+
+PEER_HA2
+  ^\s+IP\s+Address:\s+${PEER_HA2_IP}
+  ^\s+MAC\s+Address:\s+${PEER_HA2_MAC}
+  ^\s+Keep-alive\s+.*;\s+status\s+${PEER_HA2_LINK_STATE};
+  ^\s+HA2\s+Backup\s+Data\s+Link\s+Information: -> PEER_HA2_B
+
+PEER_HA2_B
+  ^\s+IP\s+Address:\s+${PEER_HA2_B_IP}
+  ^\s+MAC\s+Address:\s+${PEER_HA2_B_MAC}
+  ^\s+Keep-alive\s+[Ss]tatus\s+${PEER_HA2_B_LINK_STATE}
+  ^\s+Election\s+Option\s+Information: -> PEER_ELECTION
+
+PEER_ELECTION
+  ^\s+Priority:\s+${PEER_ELECTION_PRIORITY}
+  ^\s+Preemptive:\s+${PEER_ELECTION_PREEMPTIVE}
+  ^\s+Version\s+Information: -> PEER_VERSION
+
+
+PEER_VERSION
+  ^\s+Build\s+Release:\s+${PEER_VERSION_BUILD}
+  ^\s+URL\s+Database:\s+${PEER_VERSION_URL}
+  ^\s+Application\s+Content:\s+${PEER_VERSION_APP}
+  ^\s+Anti-Virus:\s+${PEER_VERSION_ANTIVIRUS}
+  ^\s+Threat\s+Content:\s+${PEER_VERSION_THREAT}
+  ^\s+VPN\s+Client\s+Software:\s+${PEER_VERSION_VPN_CLIENT}
+  ^\s+Global\s+Protect\s+Client\s+Software:\s+${PEER_VERSION_GLOBALPROTECT}
+  ^\s+Initial Monitor.* -> Start
+
+Link
+  ^\s+Enabled:\s+${LINK_MONITORING_ENABLED} 
+  ^\s+Failure\s+[Cc]ondition:\s+${LINK_MONITORING_CONDITION} -> Start
+
+Path
+  ^\s+Enabled:\s+${PATH_MONITORING_ENABLED}
+  ^\s+Failure\s+[Cc]ondition:\s+${PATH_MONITORING_CONDITION} -> Start
+
+Sync
+  ^\s+Enabled:\s+${CONFIG_SYNC} 
+  ^\s+Running\sConfiguration:\s+${RUNNING_CONFIGURATION} -> Record

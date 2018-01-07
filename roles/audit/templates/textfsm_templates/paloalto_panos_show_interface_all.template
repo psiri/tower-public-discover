@@ -1,0 +1,11 @@
+Value INTF (\S+)
+Value VSYS_ID (\d+)
+Value ZONE (\S+)
+Value FORWARDING (vr:\S+|ha|N\/A)
+Value TAG (\d+)
+Value IP (\S+)
+
+
+Start
+  ^${INTF}\s+\d+\s+${VSYS_ID}\s+${ZONE}\s+${FORWARDING}\s+${TAG}\s+${IP} -> Record
+  ^${INTF}\s+\d+\s+${VSYS_ID}\s+${FORWARDING}\s+${TAG}\s+${IP} -> Record

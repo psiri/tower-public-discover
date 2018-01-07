@@ -1,0 +1,36 @@
+Value VERSION (.+?)
+Value HOSTNAME (\S+)
+Value List UPTIME (.+)
+Value RUNNING_IMAGE (\S+)
+Value List LICENSE_LEVEL (\S+)
+Value List HARDWARE (\S+\d\S+)
+Value List BASE_MAC (\S+)
+Value List SERIAL (\S+)
+Value CONFIG_REGISTER (\S+)
+
+Start
+  ^.*Software\s.+\),\sVersion\s${VERSION},*\s+RELEASE.*
+  ^\s*${HOSTNAME}\s+uptime\s+is\s+${UPTIME}
+  ^[sS]ystem\s+image\s+file\s+is\s+"(.*?):${RUNNING_IMAGE}"
+  ^[Bb]ase\s+[Ee]thernet\s+MAC\s+[Aa]ddress\s+:\s+${BASE_MAC}
+  ^[Pp]rocessor\s+board\s+ID\s+${SERIAL}
+  ^License\s+[Ll]evel(\s+)?:\s+${LICENSE_LEVEL}
+  ^[Mm]odel\s+[Nn]umber\s+:\s+${HARDWARE}\s*
+  ^[Ss]witch\s+[0]2 -> Switch02
+  ^[Ss]witch\s+[0]3 -> Switch03
+  ^[Cc]onfiguration\s+register\s+is\s+${CONFIG_REGISTER}
+
+Switch02
+  ^[Ss]witch\s+[Uu]ptime\s+:\s+${UPTIME}
+  ^[Bb]ase\s+[Ee]thernet\s+MAC\s+[Aa]ddress\s+:\s+${BASE_MAC}
+  ^[Ss]ystem [Ss]erial [Nn]umber\s+:\s+${SERIAL}
+  ^[Mm]odel\s+[Nn]umber\s+:\s+${HARDWARE}\s*
+  ^License\s+[Ll]evel(\s+)?:\s+${LICENSE_LEVEL}
+  ^[Nn]ext [Rr]eboot [Ll]icens -> Start
+
+Switch03
+  ^[Ss]witch\s+[Uu]ptime\s+:\s+${UPTIME}
+  ^[Bb]ase\s+[Ee]thernet\s+MAC\s+[Aa]ddress\s+:\s+${BASE_MAC}
+  ^[Ss]ystem [Ss]erial [Nn]umber\s+:\s+${SERIAL}
+  ^[Mm]odel\s+[Nn]umber\s+:\s+${HARDWARE}\s*
+  ^[Nn]ext [Rr]eboot [Ll]icens -> Start

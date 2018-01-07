@@ -1,0 +1,27 @@
+---
+
+ansible_dir: "/Users/psiri/Documents/ansible/"
+# BACKUP DIRECTORY MUST EXIST WITHIN ANSIBLE DIRECTORY!   {{ ansbile_dir }}backup
+backup_dir: "{{ ansible_dir }}backup/"
+dated_backup_dir: "{{ backup_dir }}{{ ansible_date_time.get('date') }}_{{ ansible_date_time.get('hour') }}-{{ ansible_date_time.get('minute') }}/"
+host_backup_dir: "{{ dated_backup_dir }}{{ inventory_hostname }}/"
+reports_dir: "{{ host_backup_dir }}/reports/"
+raw_output_dir: "{{ host_backup_dir }}/raw_output/"
+roles_dir: "{{ ansible_dir }}roles/"
+configdir: "{{ ansible_dir }}configs"
+config_dir: "{{ ansible_dir }}configs/"
+template_dir: "{{ roles_dir }}discover/templates/textfsm_templates"
+diff_command: "diff {{ host_backup_dir }}{{ inventory_hostname }}.txt {{ raw_output_dir }}{{ inventory_hostname }}_startup_config.txt --ignore-matching-lines: 'ntp clock-period*' --ignore-blank-lines --ignore-matching-lines: 'Using .* out of .*'  --ignore-matching-lines: ^!.* --context: 3 > {{ raw_output_dir }}{{ inventory_hostname }}_config_diff.txt"
+
+
+un: "CHANGE_ME_TO_YOUR_USERNAME"
+pwd: "CHANGE_ME_TO_YOUR_PASSWORD!"
+secret: null
+ignore_task_errors: False
+default_delay: 1
+global_delay_factor: 1
+#transport: netmiko_ssh
+port_num: 22
+send_email: false
+localhost host: 127.0.0.1
+reboot_device: false

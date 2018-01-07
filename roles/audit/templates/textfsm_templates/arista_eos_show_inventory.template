@@ -1,0 +1,33 @@
+Value Filldown PWR_SUPPLY_SLOT (\d+)
+Value PWR_SUPPLY_MODEL (\S+)
+Value PWR_SUPPLY_SERIAL (\S+)
+Value Filldown FAN_MODULE (\d+)
+Value FAN_QTY (\d+)
+Value FAN_MODEL (\S+)
+Value FAN_SERIAL (\S+)
+Value Filldown TRANSCEIVER_PORT (\d+)
+Value TRANSCEIVER_MANUFACTURER ((Not\sPresent)|(Arista\sNetworks)|\S+)
+Value TRANSCEIVER_MODEL (\S+)
+Value TRANSCEIVER_SERIAL (\S+)
+Value TRANSCEIVER_REV (\S+)
+
+Start
+  ^System\s+has\s+\d+\s+power\s+supply.* -> Power
+
+
+Power
+  ^\s+${PWR_SUPPLY_SLOT}\s+${PWR_SUPPLY_MODEL}\s+${PWR_SUPPLY_SERIAL} -> Record
+  ^System\s+has\s+\d+\s+fan.* -> Clearall Fans
+
+
+Fans
+  ^\s+${FAN_MODULE}\s+${FAN_QTY}\s+${FAN_MODEL}\s+${FAN_SERIAL} -> Record
+  ^System\s+has\s+\d+\s+transceiver.* -> Clearall Transceivers
+
+
+Transceivers
+  # Match Transceivers with model numbers, serial numbers, and Rev
+  ^\s+${TRANSCEIVER_PORT}\s+${TRANSCEIVER_MANUFACTURER}\s+${TRANSCEIVER_MODEL}\s+${TRANSCEIVER_SERIAL}\s+${TRANSCEIVER_REV} -> Record
+  # Match Transceivers with no Manufacturer
+  ^\s+${TRANSCEIVER_PORT}\s+${TRANSCEIVER_MANUFACTURER}\s+ -> Record
+  ^.* -> Clearall

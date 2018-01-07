@@ -1,0 +1,192 @@
+DEVICE: {{ inventory_hostname }}
+================================
+
+{% if device_info.response[0] is defined %}
+SYSTEM INFO:
+------------
+
+| HOSTNAME | MGMT IP |  NETMASK  | GATEWAY |  MAC  | UPTIME | OPERATIONAL MODE |
+| :------: | :------ | :-------- | :------ | :---: | :----: | :--------------: |
+{% for response in device_info.response %}
+| {{ response.get('hostname') }} | {{ response.get('ip_address') }} | {{ response.get('netmask') }} | {{ response.get('gateway') }} | {{ response.get('mac') }} |  {{ response.get('uptime') }} |  {{ response.get('operational_mode') }} |
+
+| FAMILY | MODEL | SERIAL | OS VERSION | VPN-DISABLE-MODE | MULTI-VSYS |
+| :----: | :---: | :----: | :--------: | :--------------: | :--------: |
+| {{ response.get('family') }} | {{ response.get('model') }} | {{ response.get('serial') }} | {{ response.get('os') }} | {{ response.get('vpn_disable_mode') }} | {{ response.get('multi_vsys') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if interface_info.response[0] is defined %}
+INTERFACES:
+-----------
+| INTERFACE | VSYS |  ZONE  | FORWARDING |  TAG  | ADDRESS |
+| :-------- | :--- | :----: | :--------: | :---: | :------ |
+{% for response in interface_info.response %}
+| {{ response.get('intf') }} |  {{ response.get('vsys_id') }} | {{ response.get('zone') }} | {{ response.get('forwarding') }} | {{ response.get('tag') }} | {{ response.get('ip') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if pan_int_hardware.response[0] is defined %}
+| INTERFACE | SPEED | DUPLEX | STATE |  MAC  |
+| :-------- | :---- | :----: | :---: | :---: |
+{% for hw_int in pan_int_hardware.response %}
+| {{ hw_int.get('intf') }} | {{ hw_int.get('speed') }} | {{ hw_int.get('duplex') }} | {{ hw_int.get('state') }} |  {{ hw_int.get('mac') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if routing_info.response[0] is defined %}
+{{ inventory_hostname }} ROUTES:
+--------------------------------
+| VIRTUAL ROUTER | VR ID | DESTINATION |  MASK | NEXT HOP |  METRIC  | FLAGS | INTERFACE |  AGE  | NEXT-AS |
+| :------------: | :---: | :---------: | :---: | :------: | :------: | :---: | :-------: | :---: | :-----: |
+{% for response in routing_info.response %}
+| {{ response.get('vr') }} | {{ response.get('vr_id') }} | {{ response.get('destination') }} | {{ response.get('mask') }} | {{ response.get('next_hop') }} | {{ response.get('metric') }} | {{ response.get('flags') }} | {{ response.get('interface') }} | {{ response.get('age') }} | {{ response.get('next_as') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+
+
+{% if pan_ha_info.response[0] is defined %}
+HIGH-AVAILABILITY:
+------------------
+{% for ha_info in pan_ha_info.response %}
+| DEVICE | GROUP |  MODE  | STATE | PREEMPTIVE | PRIORITY | PASSIVE LINK STATE |
+| :----: | :---: | :----: | :---: | :--------: | :------: | :----------------: |
+|  Local | {{ ha_info.get('group') }} | {{ ha_info.get('mode') }} | {{ ha_info.get('state') }} | {{ ha_info.get('preemptive') }} | {{ ha_info.get('priority') }} | {{ ha_info.get('passive_link_state') }} |
+|  Peer  |       | {{ ha_info.get('peer_ha_mode') }} | {{ ha_info.get('peer_state') }} | {{ ha_info.get('peer_election_preemptive') }} | {{ ha_info.get('peer_election_priority') }} |         |
+
+
+
+| DEVICE | SYNC ENABLED - STATUS |  APP  | THREAT | ANTIVIRUS | PAN-OS | GLOBALPROTECT | URL FILTERING |
+| :----: | :-------------------: | :---: | :----: | :-------: | :----: | :-----------: | :-----------: |
+|        | {{ ha_info.get('config_sync') }} - {{ ha_info.get('running_configuration') }} | {{ ha_info.get('app_content_compatibility') }} | {{ ha_info.get('threat_content_compatibility') }} | {{ ha_info.get('anti_virus_compatibility') }} | {{ ha_info.get('sw_version') }} | {{ ha_info.get('global_protect_client_sw_compatibility') }} |     |
+|    Local   | <-------------- | {{ ha_info.get('version_app') }} | {{ ha_info.get('version_threat') }} | {{ ha_info.get('version_antivirus') }} | {{ ha_info.get('version_build') }} | {{ ha_info.get('version_globalprotect') }} | {{ ha_info.get('version_url') }} |
+|    Peer    | --------------> | {{ ha_info.get('peer_version_app') }} | {{ ha_info.get('peer_version_threat') }} | {{ ha_info.get('peer_version_antivirus') }} | {{ ha_info.get('peer_version_build') }} | {{ ha_info.get('peer_version_globalprotect') }} | {{ ha_info.get('peer_version_url') }} |
+
+
+
+| DEVICE | HA1 INTERFACE | HA1 IP | HA1 MAC | HA1 LINK | HA1 SETTING |
+| :----: | :-----------: | :----- | :-----: | :------: | :---------: |
+|  Local | {{ ha_info.get('ha1_interface') }} | {{ ha_info.get('ha1_ip') }} | {{ ha_info.get('ha1_mac') }} | {{ ha_info.get('ha1_link_state') }} | {{ ha_info.get('ha1_link_setting') }} |
+|  Peer  | {{ ha_info.get('peer_ha1_interface') }} | {{ ha_info.get('peer_ha1_ip') }} | {{ ha_info.get('peer_ha1_mac') }} | {{ ha_info.get('peer_ha1_link_state') }} | {{ ha_info.get('peer_ha1_link_setting') }} |
+
+
+
+| DEVICE | HA1 BACKUP INTERFACE | HA1 BACKUP IP | HA1 BACKUP MAC | HA1 BACKUP LINK | HA1 BACKUP SETTING | 
+| :----: | :------------------: | :------------ | :------------: | :-------------: | :----------------: |
+|  Local | {{ ha_info.get('ha1_b_interface') }} | {{ ha_info.get('ha1_b_ip') }} | {{ ha_info.get('ha1_b_mac') }} | {{ ha_info.get('ha1_b_link_state') }} | {{ ha_info.get('ha1_b_link_setting') }} |
+|  Peer  |  {{ ha_info.get('peer_ha1_b_interface') }} | {{ ha_info.get('peer_ha1_b_ip') }} | {{ ha_info.get('peer_ha1_b_mac') }} | {{ ha_info.get('peer_ha1_b_link_state') }} | {{ ha_info.get('peer_ha1_b_link_setting') }} |
+
+
+
+| DEVICE | HA2 INTERFACE | HA2 IP | HA2 MAC | HA2 LINK | HA2 SETTING |
+| :----: | :-----------: | :----- | :-----: | :------: | :---------: |
+|  Local | {{ ha_info.get('ha2_interface') }} | {{ ha_info.get('ha2_ip') }} | {{ ha_info.get('ha2_mac') }} | {{ ha_info.get('ha2_link_state') }} | {{ ha_info.get('ha2_link_setting') }} |
+|  Peer  |               | {{ ha_info.get('peer_ha2_ip') }} | {{ ha_info.get('peer_ha2_mac') }} | {{ ha_info.get('peer_ha2_link_state') }} |        |
+
+
+| DEVICE | HA2 BACKUP INTERFACE | HA2 BACKUP IP | HA2 BACKUP MAC | HA2 BACKUP LINK | HA2 BACKUP SETTING |
+| :----: | :------------------: | :------------ | :------------: | :-------------: | :----------------: |
+|  Local | {{ ha_info.get('ha2_b_interface') }} | {{ ha_info.get('ha2_b_ip') }} | {{ ha_info.get('ha2_b_mac') }} | {{ ha_info.get('ha2_b_link_state') }} | {{ ha_info.get('ha2_b_link_setting') }} |
+|  Peer  |                      | {{ ha_info.get('peer_ha2_b_ip') }} | {{ ha_info.get('peer_ha2_b_mac') }} | {{ ha_info.get('peer_ha2_b_link_state') }} |        |
+{% endfor %}
+{% endif %}
+
+
+
+{% if pan_nat.response[0] is defined %}
+NAT POLICIES:
+-------------
+| POLICY | TYPE  | SOURCE ZONE | DESTINATION ZONE | DESTINATION INT | SOURCE ADDRESS | DESTINATION ADDRESS | SERVICE | TRANSLATION |
+| :----: | :---: | :---------: | :--------------: | :-------------: | :------------- | :------------------ | :-----: | :---------: |
+{% for response in pan_nat.response %}
+| {{ response.get('name') }} | {{ response.get('nat_type') }} | {{ response.get('from') }} | {{ response.get('to') }} | {{ response.get('to_interface') }} | {{ response.get('source') }} | {{ response.get('destination') }} | {{ response.get('service') }} | {{ response.get('translate_to') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if acl_info.response[0] is defined %}
+SECURITY POLICIES:
+------------------
+| POLICY | SOURCE ZONE | DESTINATION ZONE | DESTINATION INT | SOURCE ADDRESS | SOURCE REGION |  USER  | DESTINATION | DEST REGION | CATEGORY | SERVICE | ACTION | ICMP UNREACHABLE | TERMINAL |  TYPE  |
+| :----: | :---------: | :--------------: | :-------------: | :------------: | :-----------: | :----: | :---------: | :---------: | :------: | :-----: | :----: | :--------------: | :------: | :----: |
+{% for response in acl_info.response %}
+| {{ response.get('name') }} | {{ response.get('from') }} | {{ response.get('to') }} | {{ response.get('to_interface') }} | {{ response.get('source') }} | {{ response.get('source_region') }} | {{ response.get('user') }} | {{ response.get('destination') }} | {{ response.get('destination_region') }} | {{ response.get('category') }} | {{ response.get('service') }} | {{ response.get('action') }} | {{ response.get('icmp_unreachable') }} | {{ response.get('terminal') }} | {{ response.get('type') }} |
+{% endfor %}
+{% endif %}
+
+
+
+
+{% if pan_tunnel_flow.response[0] is defined %}
+VPN TUNNEL(s):
+--------------
+
+| IPSEC TUNNEL ID |  NAME  | STATE | LOCAL IP | PEER IP | TUNNEL INTERFACE | MONITOR |
+| :-------------: | :----: | :---: | :------: | :-----: | :--------------: | :-----: |
+{% for response in pan_tunnel_flow.response if response.get('ipsec_tunnel_id') %}
+| {{ response.get('ipsec_tunnel_id') }} | {{ response.get('ipsec_tunnel_name') }} | {{ response.get('state') }} | {{ response.get('ipsec_local_ip') }} | {{ response.get('ipsec_peer_ip') }} | {{ response.get('ipsec_tunnel_intf') }} | {{ response.get('monitor') }} |
+{% endfor %}
+
+| GLOBALPROTECT TUNNEL ID |  NAME  | LOCAL INTERFACE | LOCAL IP | TUNNEL INTERFACE |
+| :---------------------: | :----: | :-------------: | :------: | :--------------: |
+{% for response in pan_tunnel_flow.response if response.get('gp_tunnel_id') %}
+| {{ response.get('gp_tunnel_id') }} | {{ response.get('gp_tunnel_name') }} | {{ response.get('gp_local_intf') }} | {{ response.get('gp_local_ip') }} | {{ response.get('gp_tunnel_intf') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if pan_wildfire_status.response[0] is defined %}
+WILDFIRE STATUS:
+----------------
+| SIGNATURE VERIFICATION | SERVER SELECTION | FILE CACHE | 
+| :--------------------: | :--------------: | :--------: |
+{% for response in pan_wildfire_status.response %}
+| {{ response.get('connection_sig') }} |{{ response.get('connection_server_selection') }} |{{ response.get('connection_file_cache') }} |
+{% endfor %}
+
+
+| PUBLIC CLOUD SERVER | STATUS | BEST SERVER | REGISTERED | PROXY | VALID LICENSE | SERVICE ROUTE IP | UPDATE INTERVAL | FORWARDED | FAILED | TOTAL QUERIES | TOTAL FAILED QUERIES |
+| :-----------------: | :----: | :---------: | :--------: | :---: | :-----------: | :--------------: | :-------------: | :-------: | :----: | :-----------: | :------------------: |
+{% for response in pan_wildfire_status.response %}
+| {{ response.get('public_server') }} | {{ response.get('public_status') }} | {{ response.get('public_best') }} | {{ response.get('public_registered') }} | {{ response.get('public_proxy') }} | {{ response.get('public_license') }} | {{ response.get('public_service_ip') }} | {{ response.get('public_update_interval') }} | {{ response.get('public_fwded') }} | {{ response.get('public_failed') }} | {{ response.get('public_total') }} | {{ response.get('public_total_failed') }} |
+{% endfor %}
+
+
+| PRIVATE CLOUD SERVER | STATUS | BEST SERVER | REGISTERED | PROXY | VALID LICENSE | SERVICE ROUTE IP | FORWARDED | FAILED | TOTAL QUERIES | TOTAL FAILED QUERIES |
+| :------------------: | :----: | :---------: | :--------: | :---: | :-----------: | :--------------: | :-------: | :----: | :-----------: | :------------------: |
+{% for response in pan_wildfire_status.response %}
+| {{ response.get('private_server') }} | {{ response.get('private_status') }} | {{ response.get('private_best') }} | {{ response.get('private_registered') }} | {{ response.get('private_proxy') }} | {{ response.get('private_license') }} | {{ response.get('private_service_ip') }} |  {{ response.get('private_fwded') }} | {{ response.get('private_failed') }} | {{ response.get('private_total') }} | {{ response.get('private_total_failed') }} |
+{% endfor %}
+
+| PE MAX | APK MAX | PDF MAX | MS-OFFICE MAX | JAR MAX | FLASH MAX | MAC OSX MAX |
+| :----: | :-----: | :-----: | :-----------: | :-----: | :-------: | :---------: |
+{% for response in pan_wildfire_status.response %}
+| {{ response.get('size_pe') }} | {{ response.get('size_apk') }} | {{ response.get('size_pdf') }} | {{ response.get('size_ms_office') }} | {{ response.get('size_jar') }} | {{ response.get('size_flash') }} | {{ response.get('size_macosx') }} |
+{% endfor %}
+{% endif %}
+
+
+
+{% if pan_url_status.response[0] is defined %}
+URL FILTERING STATUS:
+---------------------
+| URL FILTERING LICENSE | CLOUD SERVER | CONNECTION |  MODE | DEVICE DATABASE | CLOUD DATABASE | DATABASE STATUS | DEVICE PROTOCOL | CLOUD PROTOCOL | PROTOCOL COMPATIBILITY |
+| :-------------------: | :----------: | :--------: | :---: | :-------------: | :------------: | :-------------: | :-------------: | :------------: | :--------------------: |
+{% for response in pan_url_status.response %}
+| {{ response.get('license') }} | {{ response.get('server') }} | {{ response.get('connection') }} | {{ response.get('mode') }} | {{ response.get('database_device') }} | {{ response.get('database_cloud') }} | {{ response.get('database_status') }} | {{ response.get('protocol_device') }} | {{ response.get('protocol_cloud') }} | {{ response.get('protocol_compatibility') }} |
+{% endfor %}
+{% endif %}

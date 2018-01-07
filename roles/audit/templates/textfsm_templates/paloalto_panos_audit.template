@@ -1,0 +1,231 @@
+Value MOTD_ENABLE (\w+)
+Value MOTD_HEADER (.*)
+Value MOTD_MESSAGE (.*)
+Value MOTD_FOOTER (.*)
+Value MOTD_TITLE (.*)
+Value DISABLE_TELNET (\w+)
+Value DISABLE_HTTP (\w+)
+Value DISABLE_UID (\w+)
+Value PERMITTED_IP (.*)
+Value List INT_MGMT_PROFILE_HTTPS (.*)
+Value List INT_MGMT_PROFILE_SSH (.*)
+Value List INT_MGMT_PROFILE_SNMP (.*)
+Value List INT_MGMT_PROFILE_PERMITTED_IP (.*)
+Value PWD_COMPLEXITY_ENABLE (\w+)
+Value PWD_MIN_LEN (\d+)
+Value PWD_MIN_UPPERCASE (\d+)
+Value PWD_MIN_LOWERCASE (\d+)
+Value PWD_MIN_NUMERIC (\d+)
+Value PWD_MIN_SPECIAL (\d+)
+Value PWD_BLOCK_USERNAME (\w+)
+Value PWD_WARNING (\d+)
+Value PWD_ADMIN_LOGIN_CNT (\d+)
+Value PWD_GRACE_PERIOD (\d+)
+Value PWD_EXPIRATION_PERIOD (\d+)
+Value PWD_BLOCK_REPEATED (\d+)
+Value PWD_HISTORY_CNT (\d+)
+Value PWD_PROFILE (\S+)
+Value HIGH_DP_LOG (\w+)
+Value IDLE_TIMEOUT (\d+)
+Value STOP_ON_LOGDB_FULL (\w+)
+Value FAILED_ATTEMPTS (\d+)
+Value LOCKOUT_TIME (\d+)
+Value List AUTH_PROF (\S+)
+Value List AUTH_PROF_LOCKOUT (\d+)
+Value List AUTH_PROF_ATTEMPTS (\d+)
+Value SNMP_VERSION (\S+)
+Value SERVER_VERIFICATION (\w+)
+Value NTP_PRIMARY (\S+)
+Value NTP_SECONDARY (\S+)
+Value List CERT_GATEWAY_PROF (.*)
+Value List CERT_SSL_TLS_PROF (.*)
+Value List CERT_NAME (.*)
+Value List CERT_LIST_NAME (.*)
+Value List CERT_VALID_START (.*)
+Value List CERT_VALID_END (.*)
+Value UID_USERS_MAPPED (\d+)
+Value UID_NTLM (\w+)
+Value UID_PROBING (\w+)
+Value UID_SESSION (\w+)
+Value HA_LINK_STATE (\w+)
+Value HA_STATE_SYNCHRONIZATION (\w+)
+Value HA_PATH_MONITOR_ENABLE (\w+)
+Value HA_LINK_MONITOR_ENABLE (\w+)
+Value HA_PREEMPTIVE (\w+)
+Value HA_SYNCHRONIZATION (\w+)
+Value HA_ENABLE (\w+)
+Value UPDATE_THREAT (\S+)
+Value UPDATE_THREAT_ACTION (\S+)
+Value UPDATE_AV (\S+)
+Value UPDATE_AV_ACTION (\S+)
+Value UPDATE_APP (\S+)
+Value UPDATE_APP_ACTION (\S+)
+Value UPDATE_GP_CLIENTLESS (\S+)
+Value UPDATE_GP_CLIENTLESS_ACTION (\S+)
+Value UPDATE_GP_DATAFILE (\S+)
+Value UPDATE_GP_DATAFILE_ACTION (\S+)
+Value UPDATE_WILDFIRE (\S+)
+Value UPDATE_WILDFIRE_ACTION (\S+)
+Value UPDATE_PASSIVE_DNS (\w+)
+Value WILDFIRE_PE (\d+)
+Value WILDFIRE_APK (\d+)
+Value WILDFIRE_PDF (\d+)
+Value WILDFIRE_MS_OFFICE (\d+)
+Value WILDFIRE_JAR (\d+)
+Value WILDFIRE_FLASH (\d+)
+Value WILDFIRE_MAC (\d+)
+Value WILDFIRE_EXCLUDE_APP (\w+)
+Value WILDFIRE_EXCLUDE_DEST_IP (\w+)
+Value WILDFIRE_EXCLUDE_DEST_PORT (\w+)
+Value WILDFIRE_EXCLUDE_EMAIL_REC (\w+)
+Value WILDFIRE_EXCLUDE_EMAIL_SEND (\w+)
+Value WILDFIRE_EXCLUDE_EMAIL_SUB (\w+)
+Value WILDFIRE_EXCLUDE_FILENAME (\w+)
+Value WILDFIRE_EXCLUDE_SRC_IP (\w+)
+Value WILDFIRE_EXCLUDE_SRC_PORT (\w+)
+Value WILDFIRE_EXCLUDE_URL (\w+)
+Value WILDFIRE_EXCLUDE_USERNAME (\w+)
+Value WILDFIRE_EXCLUDE_VSYS_ID (\w+)
+Value List VIRUS_PROF_NAME (\S+)
+Value List VIRUS_IMAP_WF_ACTION (\S+)
+Value List VIRUS_IMAP_ACTION (\S+)
+Value List VIRUS_POP3_WF_ACTION (\S+)
+Value List VIRUS_POP3_ACTION (\S+)
+Value List VIRUS_HTTP_WF_ACTION (\S+)
+Value List VIRUS_HTTP_ACTION (\S+)
+Value List VIRUS_FTP_WF_ACTION (\S+)
+Value List VIRUS_FTP_ACTION (\S+)
+Value List VIRUS_SMB_WF_ACTION (\S+)
+Value List VIRUS_SMB_ACTION (\S+)
+Value List VIRUS_SMTP_WF_ACTION (\S+)
+Value List VIRUS_SMTP_ACTION (\S+)
+Value List VIRUS_SECURITY_RULE (.*)
+Value List VIRUS_SECURITY_PROFILE (.*)
+Value List SPYWARE_PROF_NAME (.*)
+Value List SPYWARE_RULE_NAME (.*)
+Value List SPYWARE_THREAT_NAME (.*)
+Value List SPYWARE_CATEGORY (.*)
+Value List SPYWARE_SEVERITY (.*)
+Value List SPYWARE_CAPTURE (.*)
+Value List SPYWARE_ACTION (\s+)
+Value List SPYWARE_SINKHOLE_IPV4 (\S+)
+Value List SPYWARE_SINKHOLE_IPV6 (\S+)
+Value List SPYWARE_BOTNET_LIST (.*)
+Value List SPYWARE_BOTNET_ACTION (\w+)
+Value List WF_ANALYSIS_PROF (.*)
+Value List WF_ANALYSIS_RULE (.*)
+Value List WF_ANALYSIS_APP (.*)
+Value List WF_ANALYSIS_FILE (.*)
+Value List WF_ANALYSIS_LOCATION (.*)
+Value List WF_ANALYSIS_DIRECTION (.*)
+Value WF_ALLOW_DECRYPT_FWD (\w+)
+
+
+Start
+  ^set\s+deviceconfig\s+system\s+motd-and-banner\s+motd-enable\s+${MOTD_ENABLE}
+  ^set\s+deviceconfig\s+system\s+motd-and-banner\s+banner-header\s+${MOTD_HEADER}
+  ^set\s+deviceconfig\s+system\s+motd-and-banner\s+message\s+${MOTD_MESSAGE}
+  ^set\s+deviceconfig\s+system\s+motd-and-banner\s+banner-footer\s+${MOTD_FOOTER}
+  ^set\s+deviceconfig\s+system\s+motd-and-banner\s+motd-title\s+${MOTD_TITLE}
+  ^set\s+deviceconfig\s+system\s+service\s+disable-telnet\s+${DISABLE_TELNET}
+  ^set\s+deviceconfig\s+system\s+service\s+disable-http\s+${DISABLE_HTTP}
+  ^set\s+deviceconfig\s+system\s+service\s+disable-userid-service\s+${DISABLE_UID}
+  ^set\s+deviceconfig\s+system\s+permitted-ip\s+${PERMITTED_IP}
+  ^set\s+network\s+profiles\s+interface-management-profile\s+${INT_MGMT_PROFILE_HTTPS}\s+https\s+yes
+  ^set\s+network\s+profiles\s+interface-management-profile\s+${INT_MGMT_PROFILE_SSH}\s+ssh\s+yes
+  ^set\s+network\s+profiles\s+interface-management-profile\s+${INT_MGMT_PROFILE_SNMP}\s+snmp\s+yes
+  ^set\s+network\s+profiles\s+interface-management-profile\s+${INT_MGMT_PROFILE_PERMITTED_IP}\s+permitted-ip\s+\S+
+  ^set\s+mgt-config\s+password-complexity\s+enabled\s+${PWD_COMPLEXITY_ENABLE}
+  ^set\s+mgt-config\s+password-complexity\s+minimum-length\s+${PWD_MIN_LEN}
+  ^set\s+mgt-config\s+password-complexity\s+minimum-uppercase-letters\s+${PWD_MIN_UPPERCASE}
+  ^set\s+mgt-config\s+password-complexity\s+minimum-lowercase-letters\s+${PWD_MIN_LOWERCASE}
+  ^set\s+mgt-config\s+password-complexity\s+minimum-numeric-letters\s+${PWD_MIN_NUMERIC}
+  ^set\s+mgt-config\s+password-complexity\s+minimum-special-characters\s+${PWD_MIN_SPECIAL}
+  ^set\s+mgt-config\s+password-complexity\s+block-username-inclusion\s+${PWD_BLOCK_USERNAME}
+  ^set\s+mgt-config\s+password-complexity\s+password-change\s+expiration-warning-period\s+${PWD_WARNING}
+  ^set\s+mgt-config\s+password-complexity\s+password-change\s+post-expiration-admin-login-count\s+${PWD_ADMIN_LOGIN_CNT}
+  ^set\s+mgt-config\s+password-complexity\s+password-change\s+post-expiration-grace-period\s+${PWD_GRACE_PERIOD}
+  ^set\s+mgt-config\s+password-complexity\s+password-change\s+expiration-period\s+${PWD_EXPIRATION_PERIOD}
+  ^set\s+mgt-config\s+password-complexity\s+block-repeated-characters\s+${PWD_BLOCK_REPEATED}
+  ^set\s+mgt-config\s+password-complexity\s+password-history-count\s+${PWD_HISTORY_CNT}
+  ^set\s+mgt-config\s+password-profile\s${PWD_PROFILE}
+  ^set\s+deviceconfig\s+setting\s+management\s+enable-log-high-dp-load\s+${HIGH_DP_LOG}
+  ^set\s+deviceconfig\s+setting\s+management\s+idle-timeout\s+${IDLE_TIMEOUT}
+  ^set\s+deviceconfig\s+setting\s+management\s+traffic-stop-on-logdb-full\s+${STOP_ON_LOGDB_FULL}
+  ^set\s+deviceconfig\s+setting\s+management\s+admin-lockout\s+failed-attempts\s+${FAILED_ATTEMPTS}
+  ^set\s+deviceconfig\s+setting\s+management\s+admin-lockout\s+lockout-time\s+${LOCKOUT_TIME}
+  ^set\s+shared\s+authentication-profile\s+${AUTH_PROF}\s+lockout\s+lockout-time\s+${AUTH_PROF_LOCKOUT}
+  ^set\s+shared\s+authentication-profile\s+${AUTH_PROF}\s+lockout\s+failed-attempts\s+${AUTH_PROF_ATTEMPTS}
+  ^set\s+deviceconfig\s+system\s+snmp-setting\s+access-setting\s+version\s+${SNMP_VERSION}
+  ^set\s+deviceconfig\s+system\s+server-verification\s+${SERVER_VERIFICATION}
+  ^set\s+deviceconfig\s+system\s+ntp-servers\s+primary-ntp-server\s+${NTP_PRIMARY}
+  ^set\s+deviceconfig\s+system\s+ntp-servers\s+secondary-ntp-server\s+${NTP_SECONDARY}
+  ^set\s+global-protect\s+global-protect-gateway\s+.*\s+ssl-tls-service-profile\s+${CERT_GATEWAY_PROF}
+  ^set\s+shared\s+ssl-tls-service-profile\s+${CERT_SSL_TLS_PROF}\s+certificate\s+${CERT_NAME}
+  ^set\s+shared\s+certificate\s+${CERT_LIST_NAME}\s+not-valid-before\s+"${CERT_VALID_START}"
+  ^set\s+shared\s+certificate\s+.*\s+not-valid-after\s+"${CERT_VALID_END}"
+  ^Total:\s+${UID_USERS_MAPPED}\s+users
+  ^set\s+user-id-collector\s+setting\s+enable-ntlm\s+${UID_NTLM}
+  ^set\s+user-id-collector\s+setting\s+enable-probing\s+${UID_PROBING}
+  ^set\s+user-id-collector\s+setting\s+enable-session\s+${UID_SESSION}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+mode\s+\S+\s+passive-link-state\s+${HA_LINK_STATE}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+state-synchronization\s+ha2-keep-alive\s+enabled\s+${HA_STATE_SYNCHRONIZATION}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+monitoring\s+path-monitoring\s+enabled\s+${HA_PATH_MONITOR_ENABLE}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+monitoring\s+link-monitoring\s+enabled\s+${HA_LINK_MONITOR_ENABLE}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+election-option\s+preemptive\s+${HA_PREEMPTIVE}
+  ^set\s+deviceconfig\s+high-availability\s+group\s+\d+\s+configuration-synchronization\s+enabled\s+${HA_SYNCHRONIZATION}
+  ^set\s+deviceconfig\s+high-availability\s+enabled\s+${HA_ENABLE}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+threats\s+recurring\s+${UPDATE_THREAT}\s+action\s+${UPDATE_THREAT_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+anti-virus\s+recurring\s+${UPDATE_AV}\s+action\s+${UPDATE_AV_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+app-profile\s+recurring\s+${UPDATE_APP}\s+action\s+${UPDATE_APP_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+global-protect-clientless-vpn\s+recurring\s+${UPDATE_GP_CLIENTLESS}\s+action\s+${UPDATE_GP_CLIENTLESS_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+global-protect-datafile\s+recurring\s+${UPDATE_GP_DATAFILE}\s+action\s+${UPDATE_GP_DATAFILE_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+wildfire\s+recurring\s+${UPDATE_WILDFIRE}\s+action\s+${UPDATE_WILDFIRE_ACTION}
+  ^set\s+deviceconfig\s+system\s+update-schedule\s+statistics-service\s+passive-dns-monitoring\s+${UPDATE_PASSIVE_DNS}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+pe\s+size-limit\s+${WILDFIRE_PE}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+apk\s+size-limit\s+${WILDFIRE_APK}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+pdf\s+size-limit\s+${WILDFIRE_PDF}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+ms-office\s+size-limit\s+${WILDFIRE_MS_OFFICE}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+jar\s+size-limit\s+${WILDFIRE_JAR}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+flash\s+size-limit\s+${WILDFIRE_FLASH}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+file-size-limit\s+MacOSX\s+size-limit\s+${WILDFIRE_MAC}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-app-name\s+${WILDFIRE_EXCLUDE_APP}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-dest-ip\s+${WILDFIRE_EXCLUDE_DEST_IP}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-dest-port\s+${WILDFIRE_EXCLUDE_DEST_PORT}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-email-recipient\s+${WILDFIRE_EXCLUDE_EMAIL_REC}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-email-sender\s+${WILDFIRE_EXCLUDE_EMAIL_SEND}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-email-subject\s+${WILDFIRE_EXCLUDE_EMAIL_SUB}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-filename\s+${WILDFIRE_EXCLUDE_FILENAME}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-src-ip\s+${WILDFIRE_EXCLUDE_SRC_IP}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-src-port\s+${WILDFIRE_EXCLUDE_SRC_PORT}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-url\s+${WILDFIRE_EXCLUDE_URL}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-username\s+${WILDFIRE_EXCLUDE_USERNAME}
+  ^set\s+deviceconfig\s+setting\s+wildfire\s+session-info-select\s+exclude-vsys-id\s+${WILDFIRE_EXCLUDE_VSYS_ID}
+  ^set\s+profiles\s+virus\s+${VIRUS_PROF_NAME}\s+decoder\s+imap\s+wildfire-action\s+${VIRUS_IMAP_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+imap\s+action\s+${VIRUS_IMAP_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+pop3\s+wildfire-action\s+${VIRUS_POP3_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+pop3\s+action\s+${VIRUS_POP3_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+http\s+wildfire-action\s+${VIRUS_HTTP_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+http\s+action\s+${VIRUS_HTTP_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+ftp\s+wildfire-action\s+${VIRUS_FTP_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+ftp\s+action\s+${VIRUS_FTP_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+smb\s+wildfire-action\s+${VIRUS_SMB_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+smb\s+action\s+${VIRUS_SMB_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+smtp\s+wildfire-action\s+${VIRUS_SMTP_WF_ACTION}
+  ^set\s+profiles\s+virus\s+.*\s+decoder\s+smtp\s+action\s+${VIRUS_SMTP_ACTION}
+  ^set\s+rulebase\s+security\s+rules\s+${VIRUS_SECURITY_RULE}\s+profile-setting\s+profiles\s+virus\s+${VIRUS_SECURITY_PROFILE}
+  ^set\s+profiles\s+spyware\s+${SPYWARE_PROF_NAME}\s+botnet-domains\s+sinkhole\s+ipv4-address\s+${SPYWARE_SINKHOLE_IPV4}
+  ^set\s+profiles\s+spyware\s+.*\s+botnet-domains\s+sinkhole\s+ipv6-address\s+${SPYWARE_SINKHOLE_IPV6}
+  ^set\s+profiles\s+spyware\s+.*\s+botnet-domains\s+lists\s+${SPYWARE_BOTNET_LIST}\s+action\s+${SPYWARE_BOTNET_ACTION}
+  ^set\s+profiles\s+spyware\s+.*\s+rules\s+${SPYWARE_RULE_NAME}\s+threat-name\s+${SPYWARE_THREAT_NAME}
+  ^set\s+profiles\s+spyware\s+.*\s+rules\s+.*\s+category\s+${SPYWARE_CATEGORY}
+  ^set\s+profiles\s+spyware\s+.*\s+rules\s+.*\s+severity\s+${SPYWARE_SEVERITY}
+  ^set\s+profiles\s+spyware\s+.*\s+rules\s+.*\s+packet-capture\s+${SPYWARE_CAPTURE}
+  ^set\s+profiles\s+spyware\s+.*\s+rules\s+.*\s+action\s+${SPYWARE_ACTION}
+  ^set\s+profiles\s+wildfire-analysis\s+${WF_ANALYSIS_PROF}\s+rules\s+${WF_ANALYSIS_RULE}\s+application\s+${WF_ANALYSIS_APP}
+  ^set\s+profiles\s+wildfire-analysis\s+.*\s+rules\s+.*\s+file-type\s+${WF_ANALYSIS_FILE}
+  ^set\s+profiles\s+wildfire-analysis\s+.*\s+rules\s+.*\s+analysis\s+${WF_ANALYSIS_LOCATION}
+  ^set\s+profiles\s+wildfire-analysis\s+.*\s+rules\s+.*\s+direction\s+${WF_ANALYSIS_DIRECTION}
+  ^set\s+setting\s+ssl-decrypt\s+allow-forward-decrypted-content\s+${WF_ALLOW_DECRYPT_FWD}
+
+

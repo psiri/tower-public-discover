@@ -1,0 +1,43 @@
+---
+
+
+# - name: HA STATE
+#   shell: panxapi.py -h {{ host }} -K {{ xml_api_key }} -r -s '<show><high-availability><state></state></high-availability></show>'
+#   register: high_availability_result
+
+# - debug:
+#     var: high_availability_result
+
+
+- name: HIGH AVAILABILITY STATUS
+  uri:
+    url: 'https://{{ sys_ip }}/api/?type=op&key={{ xml_api_key }}&cmd=<show><high-availability><state></state></high-availability></show>'
+    method: GET
+    force_basic_auth: no
+    status_code: 200,20,19
+    body_format: json
+    return_content: yes
+    validate_certs: no
+    timeout: 30
+  when: (platform == "paloalto_panos") and (push_method == 'api') and (push_configs|default('no') == 'yes')
+  register: high_availability_result
+
+- debug:
+    var: high_availability_result.content
+
+
+
+# - name: Ensure passive DNS monitoring is set to enabled on all anti-spyware profiles in use (Scored)
+#   shell: panxapi.py -h {{ host }} -K {{ xml_api_key }} -r -S '{{ lookup("file", "{{ config_dir }}{{ inventory_hostname }}/xml_api/10_xml_pan_server_profiles.xml") }}' "/config/shared/server-profile/ldap"
+#   register: server_profile_result
+
+# - debug:
+#     var: passive_dns_monitoring_result
+
+
+
+
+# panxapi.py -h 10.168.80.12 -K LUFRPT13VG9PMUtTZHE1QUprMTVvVjhPeUFLZkdTSGc9ZXRxeGUwWmVVVW1tdmc3bFgwUjJlNkZaQ1BiOVhxWERJT0VmNXBmRWh3TT0= -r -s '<show><high-availability><state></state></high-availability></show>'
+
+
+# 'https://10.168.80.12/api/?type=op&cmd=show&key=LUFRPT13VG9PMUtTZHE1QUprMTVvVjhPeUFLZkdTSGc9ZXRxeGUwWmVVVW1tdmc3bFgwUjJlNkZaQ1BiOVhxWERJT0VmNXBmRWh3TT0=&xpath=<show><high-availability><state></state></high-availability></show>'

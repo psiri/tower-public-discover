@@ -1,0 +1,12 @@
+Value Filldown FILE_SYSTEM (\S+)
+Value Required PERMISSIONS ([-drwx]{4})
+Value SIZE (\d+)
+Value TOTAL_SIZE (\d+)
+Value TOTAL_FREE (\d+)
+Value DATE_TIME (\w+\s+\d+\s+\d\d:?\d\d\s+)
+Value NAME (\S+)
+
+Start
+  ^Directory\s+of\s+${FILE_SYSTEM}
+  ^\s+${PERMISSIONS}\s+${SIZE}\s+${DATE_TIME}\s+${NAME} -> Record
+  ^${TOTAL_SIZE}\s+bytes\s+total\s+\(${TOTAL_FREE}\s+bytes\s+free\) -> Record

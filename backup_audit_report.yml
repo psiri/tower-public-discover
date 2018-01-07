@@ -1,0 +1,16 @@
+---
+  - name: BACKUP RUNNING/STARTUP CONFIGURATIONS, DISCOVER DEVICE FACTS, AUDIT CONFIGURATIONS, & GENERATE REPORTS
+    connection: local
+    gather_facts: no
+    hosts: BACKUP_AUDIT_REPORT_TARGETS
+    strategy: free
+    roles: 
+      - discover
+      - audit
+
+  - name: NOTIFY REPORTER
+    connection: local
+    gather_facts: no
+    hosts: BACKUP_AUDIT_REPORT_TARGETS
+    roles: 
+      - notify

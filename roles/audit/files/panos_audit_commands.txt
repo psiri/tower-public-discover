@@ -1,0 +1,45 @@
+run set cli config-output-format set
+run set cli scripting-mode on
+
+show deviceconfig system motd-and-banner | match enable
+show deviceconfig system motd-and-banner | match \"*\"
+show deviceconfig system service
+show deviceconfig system permitted-ip
+show network profiles interface-management-profile | except no
+show mgt-config password-complexity
+show mgt-config password-profile
+show deviceconfig setting management
+show shared authentication-profile | match lockout
+show mgt-config users
+show deviceconfig system snmp-setting
+show deviceconfig system | match server-verification
+show deviceconfig system | match ntp
+show global-protect global-protect-gateway | match ssl-tls-service-profile
+show shared ssl-tls-service-profile | match certificate
+show shared certificate | match valid
+run show user ip-user-mapping all option count
+show user-id-collector
+show rulebase security | match msrpc
+show deviceconfig high-availability
+show deviceconfig system update-schedule | match action
+show deviceconfig system update-schedule | match statistics-service
+show deviceconfig setting wildfire | except report
+show profiles file-blocking
+show profiles data-filtering
+show profiles spyware
+show profiles url-filtering
+show profiles virus
+show profiles vulnerability
+show profiles wildfire-analysis
+show rulebase security rules | match "profile-setting profiles"
+show setting ssl-decrypt | match allow-forward-decrypted-content
+show shared log-settings profiles | match "(verdict eq malicious)"
+show network profiles zone-protection-profile
+exit
+show wildfire status
+show wildfire statistics
+show url-cloud status
+show operational-mode
+show logging-status
+show high-availability all
+set cli scripting-mode off

@@ -1,0 +1,23 @@
+Value Filldown IPSEC_TUNNEL_ID (\d+)
+Value IPSEC_TUNNEL_NAME (\S+)
+Value STATE (\w+)
+Value MONITOR (\w+)
+Value IPSEC_LOCAL_IP (\d+\.\d+\.\d+\.\d+)
+Value IPSEC_PEER_IP (\d+\.\d+\.\d+\.\d+)
+Value IPSEC_TUNNEL_INTF (\S+)
+Value Filldown GP_TUNNEL_ID (\d+)
+Value GP_TUNNEL_NAME (\S+)
+Value GP_LOCAL_INTF (\S+)
+Value GP_LOCAL_IP (\d+\.\d+\.\d+\.\d+)
+Value GP_TUNNEL_INTF (\S+)
+
+Start
+  ^[Tt]otal\s+IPSec\s+[Tt]unnel\s+[Ss]hown: -> IPSEC
+
+IPSEC
+  ^${IPSEC_TUNNEL_ID}\s+${IPSEC_TUNNEL_NAME}\s+${STATE}\s+${MONITOR}\s+${IPSEC_LOCAL_IP}\s+${IPSEC_PEER_IP}\s+${IPSEC_TUNNEL_INTF} -> Record IPSEC
+  ^[Tt]otal\s+[Gg]lobal[Pp]rotect-[Gg]ateway\s+[Tt]unnel(s)?\s+[Ss]hown: -> Clearall GP
+
+GP
+  ^${GP_TUNNEL_ID}\s+${GP_TUNNEL_NAME}\s+${GP_LOCAL_INTF}\s+${GP_LOCAL_IP}\s+${GP_TUNNEL_INTF} -> Record GP
+  ^[Tt]otal\s+Global[Pp]rotect-[Ss]ite-[Tt]o-[Ss]ite\s+[Tt]unnel(s)?\s+[Ss]hown: -> Clearall Start

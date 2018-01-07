@@ -1,0 +1,20 @@
+Value BIOS (\S+)
+Value KICKSTART (\S+)
+Value UPTIME ((\d+\s\w+.s.,?\s?){4})
+Value LAST_REBOOT_REASON (\w+)
+Value OS_VERSION (.*)
+Value KICKSTART_IMAGE (\S+)
+Value BOOT_IMAGE (.*)
+Value HARDWARE (\S+)
+Value DEVICE_HOSTNAME (\S+)
+
+Start
+  ^\s+BIOS:\s+version\s+${BIOS}
+  ^\s+[Kk]ickstart:\s+version\s+${KICKSTART}
+  ^\s+system:\s+version\s+${OS_VERSION}
+  ^\s+kickstart\s+image\s+file\s+is:\s+${KICKSTART_IMAGE}
+  ^\s+system\s+image\s+file\s+is:\s+${BOOT_IMAGE}
+  ^\s+cisco\s+${HARDWARE}
+  ^\s+Device\s+name:\s+${DEVICE_HOSTNAME}
+  ^Kernel uptime is\s+${UPTIME}
+  ^\s+Reason:\s${LAST_REBOOT_REASON} -> Record

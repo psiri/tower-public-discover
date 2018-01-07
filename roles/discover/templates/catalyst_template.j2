@@ -1,0 +1,518 @@
+
+hostname {{ inventory_hostname }}
+!
+!
+{#                                                                                         #}
+{#                                                                                         #}
+{#                           HANDLE SERVICES IF THEY ARE DEFINED                           #}
+{#                                                                                         #}
+{#                                                                                         #}
+{% if services is defined %}
+!
+! ##### SERVICES SECTION #####
+!
+{% for service in services %}
+{% if service.state|default('enabled') == 'disabled' %}
+no service {{ service.name }}
+{% endif %}
+{% if service.state|default('enabled') == 'enabled' %}
+service {{ service.name }}
+{% endif %}
+{% endfor %}
+{% endif %}
+no ip http server
+no ip http secure-server
+!
+{#                                                                                                       #}
+{#                                                                                                       #}
+{#                           HANDLE BOOT & KICKSTART FILES IF THEY ARE DEFINED                           #}
+{#                                                                                                       #}
+{#                                                                                                       #}
+{% if boot_vars is defined%}
+{% if boot_vars.kickstart_image is defined %}boot kickstart {{ boot_vars.kickstart_image }}
+{% endif %}
+{% if boot_vars.system_image is defined %}
+boot system {% if boot_vars.switch|default('all') is defined %}switch {{ boot_vars.switch|default('all') }} {% endif %}{{ boot_vars.system_image }}
+{% endif %}
+diagnostic bootup level {{ boot_vars.diag_level|default('complete') }}
+{% endif %}
+!
+{#                                                                                         #}
+{#                                                                                         #}
+{#                           HANDLE LOGGING IF IT IS ARE DEFINED                           #}
+{#                                                                                         #}
+{#                                                                                         #}
+!
+logging buffered {{ logging_vars.buffered_size|default('16384') }} {{ logging_vars.buffered_level|default('informational') }}
+{#                                                                                                       #}
+{#                                                                                                       #}
+{#                           HANDLE USERNAME/PASSWORD/ROLE IF THEY ARE DEFINED                           #}
+{#                                                                                                       #}
+{#                                                                                                       #}
+!
+! ##### USERNAME/PASSWORD SECTION #####
+!
+{% if users is defined%}
+{% for user in users %}
+username {{ user.username }} privilege {{ user.privilege|default('15') }} {% if user.secret is defined %}secret {{ user.secret }}{% endif %}{% if user.password is defined %}password {{ user.password }}{% endif %}
+
+{% endfor %}
+{% else %}
+username admin privilege 15 secret admin123!
+{% endif %}
+!
+!
+{#                                                                                          #}
+{#                                                                                          #}
+{#                           HANDLE AAA VARIABLES OR USE DEFAULTS                           #}
+{#                                                                                          #}
+{#                                                                                          #}
+{% if aaa_vars.new_model|default('no') == 'no' %}
+no aaa new-model
+{% else %}
+aaa new-model
+{% endif %}
+!
+{#                                                                                            #}
+{#                                                                                            #}
+{#                           HANDLE CLOCK VARIABLES OR USE DEFAULTS                           #}
+{#                                                                                            #}
+{#                                                                                            #}
+clock timezone {{ clock_vars.timezone|default('PST') }} {{ clock_vars.offset|default('-8') }}
+{% if clock_vars is defined %}
+clock format {{ clock_vars.format|default('24-hours') }}
+{% if clock_vars.summer_time is defined %}
+clock summer-time {{ clock_vars.summer_time }}
+{% endif %}
+{% endif %}
+!
+{#                                                                                #}
+{#                                                                                #}
+{#                           HANDLE SWITCH PROVISIONING                           #}
+{#                                                                                #}
+{#                                                                                #}
+{% if provisioning is defined %}
+{% for switch in provisioning %}
+switch {{ switch.switch_num }} provision {{ switch.model }}
+{% endfor %}
+{% endif %}
+!
+{#                                                                                                #}
+{#                                                                                                #}
+{#                           HANDLE DHCP PARAMETERS IF THEY ARE DEFINED                           #}
+{#                                                                                                #}
+{#                                                                                                #}
+{% if dhcp_vars is defined %}
+{% if dhcp_vars.excluded_addresses is defined %}
+{% for address in dhcp_vars.excluded_addresses %}
+ip dhcp excluded-address {{ address }}
+{% endfor %}
+{% endif %}
+!
+{#                           HANDLE DHCP POOLS                           #}
+{% if dhcp_vars.pools is defined %}
+{% for pool in dhcp_vars.pools %}
+ip dhcp pool {{ pool.name }}
+ network {{ pool.network }} {{ pool.mask }}
+ default-router {{ pool.default_router }}
+ domain-name {{ pool.domain_name }}
+ dns server {{ pool.dns_server }}
+{% if pool.lease is defined %} lease {{ pool.lease }}
+{% endif %}
+!
+{% endfor %}
+{% endif %}
+{% endif %}
+!
+{#                                                                                        #}
+{#                           HANDLE MISC IP and IPv6 PARAMETERS                           #}
+{#                                                                                        #}
+ip domain-name {{ domain_name|default('changme.tempdomain.com') }}
+!
+!
+{#                                                                                                       #}
+{#                                                                                                       #}
+{#                           HANDLE SPANNING-TREE SETTINGS IF THEY ARE DEFINED                           #}
+{#                                                                                                       #}
+{#                                                                                                       #}
+{% if spanning_tree_pathcost_method is defined or ( spanning_tree_mode is defined ) or ( spanning_tree_extend_sysid is defined ) or ( spanning_tree_vlans is defined ) %}
+!
+! ##### SPANNING-TREE SECTION #####
+!
+{% if spanning_tree_mode|default('rapid-pvst') is defined %}
+spanning-tree mode {{ spanning_tree_mode|default('rapid-pvst') }}
+{% endif %}
+{% if spanning_tree_extend_sysid is defined %}
+spanning-tree extend system-id
+{% endif %}
+{% if spanning_tree_pathcost_method is defined %}
+spanning-tree pathcost method {{ spanning_tree_pathcost_method }}
+{% endif %}
+{% if spanning_tree_vlans is defined %}
+{% for vlan in spanning_tree_vlans %}
+spanning-tree vlan {{ vlan.vlan_id }} {% if vlan.priority is defined %}priority {{ vlan.priority }}{% endif %}{% if vlan.root is defined %} root{% endif %}
+{% endfor %}
+{% endif %} 
+{% endif %}
+!
+!
+{#                                                                                          #}
+{#                                                                                          #}
+{#                           HANDLE CDP VARIABLES OR USE DEFAULTS                           #}
+{#                                                                                          #}
+{#                                                                                          #}
+{% if cdp_state|default('enable') == 'enable' %}cdp enable
+{% else %}no cdp enable
+{% endif %}
+cdp format device-id {{ cdp_device_id|default('serial-number') }}
+cdp holdtime {{ cdp_holdtime|default('180') }}
+cdp timer {{ cdp_timer|default('60') }}
+cdp advertise {{ cdp_advertise|default('v2') }}
+!
+!
+{#                                                                                            #}
+{#                                                                                            #}
+{#                           HANDLE VLANS & VTP IF THEY ARE DEFINED                           #}
+{#                                                                                            #}
+{#                                                                                            #}
+{% if (vlans is defined) or (vtp_mode is defined) %}
+!
+! ##### VLAN & VTP SECTION #####
+!
+vtp mode {{ vtp_mode|default('off') }}
+!
+{% for vlan in vlans %}
+vlan {{ vlan.id }}
+{% if vlan.name is defined %}
+ name {{ vlan.name }}
+{% endif %}
+{% if vlan.admin_state|default('no shutdown') == 'shutdown' %}
+ shutdown
+{% else %}
+ no shutdown
+{% endif %}
+ state {{ vlan.state|default('active') }}
+!
+{% endfor %}
+{% endif %}
+!
+errdisable recovery cause {{ errdisable_recovery_cause|default('all') }}
+!
+crypto key generate {{ ssh_crypto_key_type|default('rsa') }} label {{ ssh_crypto_key_label|default('SSH_KEY') }} modulus {{ ssh_modulus|default('4096') }}
+ip ssh version 2
+ssh login-attempts {{ ssh_login_attempts|default('3') }}
+!
+{#                                                                            #}
+{#                           HANDLE LLDP IF ENABLED                           #}
+{#                                                                            #}
+{% if lldp_vars is defined %}
+{% if lldp_vars.state|default('enabled') == 'disabled' %}
+no lldp run
+{% else %}
+lldp run
+{% endif %}
+lldp holdtime {{ lldp_vars.holdtime|default('120') }}
+lldp reinit {{ lldp_vars.reinit|default('2') }}
+lldp timer {{ lldp_vars.timer|default('30') }}
+{% endif %}
+!
+{#                                                                                     #}
+{#                                                                                     #}
+{#                           HANDLE VRFS IF THEY ARE DEFINED                           #}
+{#                                                                                     #}
+{#                                                                                     #}
+{% if vrfs is defined %}
+!
+! ##### VRF SECTION #####
+!
+{% for vrf in vrfs %}
+vrf context {{ vrf.vrf_name }}
+ ip domain-name {{ domain_name|default('changme.tempdomain.com') }}
+ {{ vrf.vrf_route }}
+!
+{% endfor %}
+{% endif %}
+!
+!
+{#                                                                                           #}
+{#                                                                                           #}
+{#                           HANDLE INTERFACES IF THEY ARE DEFINED                           #}
+{#                                                                                           #}
+{#                                                                                           #}
+{% if interfaces is defined%}
+!
+! ##### INTERFACE SECTION #####
+!
+{% for interface in interfaces %}
+interface {{ interface.int_id }}
+{% if (interface.description is defined) %}
+ description {{ description_flag|default('**')}}{{ interface.description|default('YOU_FORGOT_TO_ADD_A_DESCRIPTION!') }}{{ description_flag|default('**')}}
+{% endif %}
+{#                           TEST WHETHER INTERFACE IS SVI, OR LOOPBACK                           #}
+{% if interface.is_virtual_l3|default('no') == "yes" %}
+{% if interface.v6_address is defined %}
+ ipv6 address {{ interface.v6_address }}
+{% endif %}
+{% if interface.secondary_ip is defined %}
+ ip address {{ interface.secondary_ip }}{% if interface.secondary_mask is defined %} {{ interface.secondary_mask }} secondary
+{% endif %}
+{% endif %}
+{% if interface.ip != 'no ip address' %}
+ ip address {{ interface.ip }} {{ interface.netmask|default('255.255.255.0') }}
+{% else %}
+{% if interface.ip == 'no ip address' %}
+ no ip address
+{% endif %}
+{% if (interface.is_special|default('no') != 'yes') and (interface.is_virtual_l3|default('no') != 'yes') %}
+ {{ interface.switchport|default('switchport') }}
+{% endif %}
+{% endif %}
+{% if interface.helper_address is defined %}
+ ip helper-address {{ interface.helper_address }}
+{% endif %}
+{% if interface.redirects|default('yes') == "no" %}
+ no ip redirects
+{% endif %}
+{% endif %}
+{#                           SET INTERFACE PARAMETERS ONLY IF INTERFACE != SVI OR LOOPBACK                           #}
+{% if interface.switchport is defined %}
+{% if (interface.switchport == 'no switchport') and (interface.ip is defined) %}
+ no switchport
+ ip address {{ interface.ip }} {{ interface.netmask|default('255.255.255.0') }}
+{% endif %}
+{#                           do this only for non-routed ports                           #}
+{% if (interface.mode|default('access') is defined) and ( (interface.switchport != 'no switchport') and (interface.ip is not defined) ) %}
+{% if interface.encapsulation is defined %}
+ switchport trunk encapsulation {{ interface.encapsulation }}
+{% endif %}
+ switchport mode {{ interface.mode|default('access') }}
+{#                           do this only for trunk ports                           #}
+{% if (interface.switchport == 'switchport') and (interface.mode|default('access') == 'trunk') %}
+ switchport trunk allowed vlan {{ interface.allowed_vlan|default('all') }}
+{% if interface.trunk_native is defined %}
+ switchport trunk native vlan {{ interface.trunk_native|default('1') }}
+{% endif %}
+{% if interface.access_vlan is defined %}
+ switchport access vlan {{ interface.access_vlan }}
+{% endif %}
+{% if interface.spanning_tree_mode is defined %}
+ spanning-tree {{ interface.spanning_tree_mode }}
+{% endif %}
+{% endif %}
+{#                           do this only for access ports                           #}
+{% if interface.mode is defined %}
+{% if (interface.switchport == 'switchport') and (interface.mode|default('access') == 'access') %}
+ switchport access vlan {{ interface.access_vlan|default('1') }}
+{% if interface.spanning_tree_mode is defined %}
+ spanning-tree {{ interface.spanning_tree_mode }}
+{% endif %}
+{% endif %}
+{% endif %}
+{#                                                                                   #}
+{% if interface.channel_group is defined %}
+ channel-group {{ interface.channel_group }} mode {{ interface.po_mode|default('active') }}
+{% endif %}
+{% if interface.spanning_tree_port_type is defined %}
+ spanning-tree port type {{ interface.spanning_tree_port_type }}
+{% endif %}
+{% if interface.vpc_function is defined %}
+ vpc {{ interface.vpc_function }}
+{% endif %}
+{% endif %}
+ speed {{ interface.speed|default('auto') }}
+ duplex {{ interface.duplex|default('auto') }}
+{#                           Handle negotiation parameters                           #}
+{% if interface.negotiate is defined %}
+{% if interface.negotiate == 'no negotiate auto' %}
+ {{ interface.negotiate }}
+{% endif %}
+{% else %}
+ negotiate {{ interface.negotiate|default('auto') }}
+{% endif %}
+{% endif %}
+{#                           HANDLE SPECIAL CASES                           #}
+{% if interface.is_special|default('no') == 'yes' %}
+{% if interface.special_1 is defined %} {{ interface.special_1}}
+{% endif %}
+{% if interface.special_2 is defined %} {{ interface.special_2}}
+{% endif %}
+{% if interface.special_3 is defined %} {{ interface.special_3}}
+{% endif %}
+{% if interface.special_4 is defined %} {{ interface.special_4}}
+{% endif %}
+{% endif %}
+{#                           CONTINUE WITH SETTING GLOBAL INTERFACE PARAMETERS                           #}
+{% if interface.bandwidth is defined %}
+ bandwidth {{ interface.bandwidth }}
+{% if interface.vrf is defined %}
+ vrf member {{ interface.vrf|default('default')  }}
+{% endif %}
+{% endif %}
+ {{ interface.state|default('shutdown') }}
+!
+{% endfor %}
+{% endif %}
+{#                                                                                       #}
+{#                                                                                       #}
+{#                           HANDLE ROUTES IF THEY ARE DEFINED                           #}
+{#                                                                                       #}
+{#                                                                                       #}
+{% if (routes is defined) or (dynamic_routing is defined) %}
+!
+! ##### ROUTING SECTION #####
+!
+ip routing
+{% endif %}
+!
+{#                           Handle Dynamic Routing (OSPF)                          #}
+{% if dynamic_routing is defined %}
+{% if dynamic_routing.ospf is defined %}
+{% for each in dynamic_routing.ospf %}
+router ospf {{ each.process_id }}
+ router-id {{ each.router_id }}
+{% if each.log_adjacency|default('yes') == 'yes' %} log-adjacency-changes
+{% endif %}
+{% if each.redistribute_connected|default('yes') == 'yes' %}
+ redistribute connected subnets{% if each.connected_tag is defined%} tag {{ each.connected_tag }}
+{% endif %}
+{% endif %}
+
+{% if each.redistribute_static|default('yes') == 'yes' %}
+ redistribute connected subnets{% if each.static_tag is defined%} tag {{ each.static_tag }}
+{% endif %}
+{% endif %}
+{{ each.network }}
+!
+{% endfor %}
+!
+{% endif %}
+{% endif %}
+{#                           Handle Dynamic Routing (EIGRP)                          #}
+{% if dynamic_routing is defined %}
+{% if dynamic_routing.eigrp is defined %}
+{% for each in dynamic_routing.eigrp %}
+router eigrp {{ each.process_id }}
+ router-id {{ each.router_id }}
+{% if each.log_adjacency|default('yes') == 'yes' %} log-adjacency-changes
+{% endif %}
+{% if each.redistribute_connected|default('yes') == 'yes' %}
+ redistribute connected subnets{% if each.connected_tag is defined%} tag {{ each.connected_tag }}
+{% endif %}
+{% endif %}
+
+{% if each.redistribute_static|default('yes') == 'yes' %}
+ redistribute connected subnets{% if each.static_tag is defined%} tag {{ each.static_tag }}
+{% endif %}
+{% endif %}
+{{ each.network }}
+!
+{% endfor %}
+!
+{% endif %}
+{% endif %}
+{#                           Handle Static Routing                           #}
+{% if routes is defined %}
+ip classless
+{% for route in routes %}
+{{ route }}
+{% endfor %}
+{% endif %}
+{#                           CHECK WHICH INTERFACE(S) ARE BEING USED FOR MGMT AND CONFIGURE THEM                           #}
+{% if mgmt_int is defined %}
+!
+! ##### MGMT SECTION #####
+!
+interface {{ mgmt_int }}
+ description {{ description_flag|default('**')}}MANAGEMENT{{ description_flag|default('**')}}
+ vrf member {{ mgmt_vrf|default('management') }}
+ ip address {{ mgmt_ip }}
+ no shutdown
+{% endif %}
+!
+{% if inband_mgmt_int is defined %}
+interface {{ inband_mgmt_int }}
+ description {{ description_flag|default('**')}}{{ inband_mgmt_description|default('IN-BAND_MGMT') }}{{ description_flag|default('**')}}
+{% if inband_mgmt_ip is defined %}
+ ip address {{ inband_mgmt_ip }}
+{% endif %}
+ {{ inband_mgmt_state|default('no shutdown') }}
+{% endif %}
+{#                                                                                  #}
+{#                                                                                  #}
+{#                           HANDLE SNMP IF IT IS DEFINED                           #}
+{#                                                                                  #}
+{#                                                                                  #}
+{% if snmp is defined %}
+!
+! ##### SNMP SECTION #####
+!
+{% for server in snmp %}
+{% if server.contact is defined %}
+snmp-server contact {{ server.contact }}
+{% endif %}
+{% if server.community is defined %}
+snmp-server community {{ server.community }} {{ server.priv }} {{ server.string }}
+{% endif %}
+{% if server.location is defined %}
+snmp-server location {{ server.location }}
+{% endif %}
+{% endfor %}
+!
+{% endif %}
+{#                                                                                    #}
+{#                                                                                    #}
+{#                           HANDLE ACCESS-LISTS IF DEFINED                           #}
+{#                                                                                    #}
+{#                                                                                    #}
+{% if access_lists is defined %}
+{% for acl in access_lists %}
+access-list {{ acl }}
+{% endfor %}
+!
+{% endif %}
+{#                                                                       #}
+{#                                                                       #}
+{#                           SET LINE DEFAULTS                           #}
+{#                                                                       #}
+{#                                                                       #}
+!
+! ##### LINE SECTION #####
+!
+line con 0
+ exec-timeout 30
+ media-type rj45
+!
+line vty 0 15
+ exec-timeout 60
+ monitor
+ transport preferred ssh
+ transport input ssh
+ transport output ssh
+!
+!
+{#                                                                                  #}
+{#                                                                                  #}
+{#                           HANDLE MONITORING IF DEFINED                           #}
+{#                                                                                  #}
+{#                                                                                  #}
+{% if monitoring is defined %}
+{% for session in monitoring %}
+monitoring session {{ session.session_id }}{% if session.source_int is defined %} source interface {{ session.source_int }}{% endif %}{% if session.destination_int is defined %} destination interface {{ session.destination_int }}{% endif %}
+
+{% endfor %}
+{% endif %}
+!
+{#                                                                                            #}
+{#                                                                                            #}
+{#                           HANDLE NTP SERVERS IF THEY ARE DEFINED                           #}
+{#                                                                                            #}
+{#                                                                                            #}
+{% if ntp_servers is defined %}
+{% for ntp_server in ntp_servers %}
+ntp server {{ ntp_server }}
+{% endfor %}
+{% endif %}
+!
+!
+banner motd *
+{{ banner_motd }}*

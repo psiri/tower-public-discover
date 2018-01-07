@@ -1,0 +1,8 @@
+---
+  - name: BACKUP, DISCOVERY, AND REPORTING PLAYBOOK
+    connection: local
+    gather_facts: no
+    hosts: DISCOVER_TARGETS
+    strategy: free
+    roles: 
+      - discover

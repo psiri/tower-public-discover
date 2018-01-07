@@ -1,0 +1,24 @@
+Value LICENSE (\w+)
+Value SERVER (\S+)
+Value CONNECTION (\w+)
+Value MODE (\w+)
+Value DATABASE_DEVICE (.*)
+Value DATABASE_CLOUD (\S+)
+Value DATABASE_UPDATE (.*)
+Value DATABASE_STATUS (\w+)
+Value PROTOCOL_DEVICE (.*)
+Value PROTOCOL_CLOUD (.*)
+Value PROTOCOL_COMPATIBILITY (\w+)
+
+
+Start
+  ^License\s+:\s+${LICENSE}
+  ^Current\s[Cc]loud\s[Ss]erver\s+:\s+${SERVER}
+  ^Cloud\s[Cc]onnection\s+:\s+${CONNECTION}
+  ^Cloud\s[Mm]ode\s+:\s+${MODE}
+  ^URL\s[Dd]atabase\s[Vv]ersion\s+-\s+[Dd]evice\s+:\s+${DATABASE_DEVICE}
+  ^URL\s[Dd]atabase\s[Vv]ersion\s+-\s+[Cc]loud\s+:\s+${DATABASE_CLOUD}(\s+\(\s+[Ll]ast\s[Uu]pdate\s[Tt]ime\s+${DATABASE_UPDATE}\))?
+  ^URL\s[Dd]atabase\s[Ss]tatus\s+:\s+${DATABASE_STATUS}
+  ^URL\s+[Pp]rotocol\s+[Vv]ersion\s+-\s+[Dd]evice\s+:\s+${PROTOCOL_DEVICE}
+  ^URL\s+[Pp]rotocol\s+[Vv]ersion\s+-\s+[Cc]loud\s+:\s+${PROTOCOL_CLOUD}
+  ^Protocol\s+[Cc]ompatibility\s+[Ss]tatus\s+:\s+${PROTOCOL_COMPATIBILITY}

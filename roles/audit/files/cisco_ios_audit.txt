@@ -1,0 +1,74 @@
+exit
+show running-config | incl aaa new-model
+show running-config | incl aaa authentication login
+show running-config | incl aaa authentication dot1x
+show running-config | incl aaa authorization
+show running-config | incl aaa accounting dot1x
+show running-config | incl aaa authentication enable
+show run | incl aaa accounting commands
+show run | incl aaa accounting connection
+show run | incl aaa accounting exec
+show run | incl aaa accounting network
+show run | incl aaa accounting system
+show run | incl tacacs source | radius source
+show run | incl privilege
+show ip access-list
+show run | sec line | incl login authentication
+show run | sec line con 0
+show run | sec vty
+show run | sec aux
+show line aux 0 | incl exec
+show line aux 0 | incl input transports
+show line tty | begin Timeout
+show run | in banner
+show run | in enable secret
+show run | incl service password-encryption
+show run | incl username
+show snmp community
+show run | in snmp-server
+show snmp groups
+show snmp user
+show run | in hostname
+show run | in ip domain name
+show crypto key mypubkey rsa
+show run | in ip sshow timeout
+show run | in ip sshow authentication-retries
+show run | in ip sshow version
+show run | in cdp run
+show run | in ip bootp server
+show run | in service dhcp
+show run | in ip identd
+show run | in ip finger
+show run | in service tcp-keepalives-in
+show run | in service tcp-keepalives-out
+show run | in service pad
+show run | in service udp-small-servers
+show run | in service tcp-small-servers
+show run | in logging buffered
+show run | in logging console
+show run | in logging host
+show log | incl trap logging
+show run | incl service timestamps
+show run | incl logging source
+show run | include ntp authentication-key
+show run | include ntp trusted-key
+show run | in ntp server
+show ip int brief | incl Loopback
+show run | incl ntp source
+show run | incl tftp source-interface
+show run | incl ip source-route
+show ip int | incl proxy-arp
+show ip int brief | incl tunnel
+show ip int | incl verify source
+show run | in access-group
+show run | sec key chain
+show run | sec router eigrp
+show run int | incl key-chain
+show run | sec router ospf
+show run | in ip ospf message-digest-key
+show run | in key chain
+show run | in key
+show run | in key-string
+show run | in ip rip authentication key-chain
+show run | in ip rip authentication mode
+show run | section router bgp
