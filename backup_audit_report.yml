@@ -3,7 +3,7 @@
     connection: local
     gather_facts: no
     hosts: all
-    strategy: free
+#    strategy: free
     roles: 
       - discover
       - audit
